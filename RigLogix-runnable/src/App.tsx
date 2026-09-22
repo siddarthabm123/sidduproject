@@ -3241,12 +3241,36 @@ function MachineryModal({
             <X size={20} />
           </button>
         </div>
-        <div className="mt-6 grid gap-6 lg:grid-cols-[.9fr_1.1fr]">
+        <div className="mt-6 grid gap-6 lg:grid-cols-[.95fr_1.05fr]">
           <div>
+            {/* Vehicle Owner & Provider Badge Card */}
+            <div className="mb-4 rounded-2xl border border-[#ded9ca] bg-[#f0ebd9] p-4 shadow-sm">
+              <div className="flex items-center justify-between">
+                <span className="text-[11px] font-extrabold uppercase tracking-[0.14em] text-[#1a7d78] flex items-center gap-1">
+                  <Building2 size={14} className="text-[#ee8b18]" /> Vehicle Owner & Operator
+                </span>
+                <Badge tone="good">
+                  <ShieldCheck size={12} /> Verified Partner
+                </Badge>
+              </div>
+              <h3 className="display mt-1 text-lg font-bold text-[#18303a]">
+                {selectedUnit.owner}
+              </h3>
+              <p className="mt-0.5 text-xs text-[#526169] flex items-center gap-1 font-medium">
+                <MapPin size={13} className="text-[#ee8b18]" /> {selectedUnit.location} ({selectedUnit.distanceKm} km away)
+              </p>
+              <div className="mt-2 flex items-center justify-between border-t border-[#d8cdb0] pt-2 text-xs">
+                <span className="flex items-center gap-1 font-bold text-[#18303a]">
+                  <Star size={13} className="fill-[#ee8b18] text-[#ee8b18]" /> {selectedUnit.rating} Owner Rating
+                </span>
+                <span className="text-xs text-[#1a7d78] font-bold">Direct Operator</span>
+              </div>
+            </div>
+
             <img
               src={selectedUnit.image}
               alt={selectedUnit.title}
-              className="h-56 w-full rounded-2xl object-cover"
+              className="h-52 w-full rounded-2xl object-cover shadow-sm"
             />
             <div className="mt-3 grid grid-cols-3 gap-2">
               {selectedUnit.specs.map((s) => (
@@ -3258,43 +3282,36 @@ function MachineryModal({
                 </div>
               ))}
             </div>
-            {ownerUnits.length > 1 && (
-              <div className="mt-4 rounded-2xl border border-[#ded9ca] bg-[#fbf9f2] p-4">
-                <p className="text-xs font-bold uppercase tracking-[.14em] text-[#1a7d78]">
-                  Choose the owner's vehicle
-                </p>
-                <div className="mt-3 space-y-2">
-                  {ownerUnits.map((unit) => (
-                    <button
-                      key={unit.id}
-                      type="button"
-                      onClick={() => {
-                        setSelectedUnitId(unit.id);
-                        if (unit.status !== "READY") setDate(dateOffset(8));
-                      }}
-                      className={`w-full rounded-xl border p-3 text-left ${selectedUnit.id === unit.id ? "border-[#ee8b18] bg-[#fff4df]" : "border-[#ded9ca] bg-[#f6f3ea]"}`}
-                    >
-                      <div className="flex items-start justify-between gap-3">
-                        <div>
-                          <p className="text-sm font-bold">{unit.owner}</p>
-                          <p className="mt-1 text-xs text-[#68777b]">
-                            {unit.title} · {unit.location}
-                          </p>
-                        </div>
-                        <Badge tone={unit.status === "READY" ? "good" : "warn"}>
-                          {unit.status === "READY"
-                            ? "Available"
-                            : "Service / repair"}
-                        </Badge>
-                      </div>
-                      <p className="mt-2 text-xs font-semibold text-[#526169]">
-                        {unit.availability} · {money(unit.baseRateHourly)}/hr
-                      </p>
-                    </button>
-                  ))}
-                </div>
+
+            {/* Vehicle Option Selector */}
+            <div className="mt-4 rounded-2xl border border-[#ded9ca] bg-[#fbf9f2] p-4">
+              <p className="text-xs font-bold uppercase tracking-[.14em] text-[#1a7d78]">
+                Switch Vehicle Option / Request Other Models
+              </p>
+              <div className="mt-3 grid grid-cols-2 gap-2">
+                {machinerySeed.map((unit) => (
+                  <button
+                    key={unit.id}
+                    type="button"
+                    onClick={() => {
+                      setSelectedUnitId(unit.id);
+                      if (unit.status !== "READY") setDate(dateOffset(8));
+                    }}
+                    className={`rounded-xl border p-2.5 text-left transition-all ${
+                      selectedUnit.id === unit.id
+                        ? "border-[#ee8b18] bg-[#fff4df] ring-2 ring-[#ee8b18]/30 font-bold"
+                        : "border-[#ded9ca] bg-[#f6f3ea] hover:border-[#ee8b18]"
+                    }`}
+                  >
+                    <p className="text-xs font-bold text-[#18303a] truncate">{unit.category}</p>
+                    <p className="text-[10px] text-[#68777b] truncate">{unit.title}</p>
+                    <p className="mt-1 text-[10px] font-bold text-[#1a7d78]">
+                      {money(unit.baseRateHourly)}/hr
+                    </p>
+                  </button>
+                ))}
               </div>
-            )}
+            </div>
             <div className="mt-4 rounded-2xl border border-[#d7edeb] bg-[#e6f2ee] p-4">
               <p className="flex items-center gap-2 text-xs font-bold uppercase tracking-[.14em] text-[#1a7d78]">
                 <CircleHelp size={15} /> In plain English
