@@ -1,0 +1,9 @@
+{
+  "name": "riglogix-root",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "postinstall": "cd RigLogix-runnable && npm install",
+    "build": "cd RigLogix-runnable && npm run build"
+  }
+}

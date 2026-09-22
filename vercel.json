@@ -1,4 +1,5 @@
 {
+  "installCommand": "cd RigLogix-runnable && npm install",
   "buildCommand": "cd RigLogix-runnable && npm run build",
   "outputDirectory": "RigLogix-runnable/dist/public",
   "framework": "vite",
