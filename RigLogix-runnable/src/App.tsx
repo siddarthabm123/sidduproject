@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import type { ButtonHTMLAttributes, FormEvent, ReactNode } from "react";
 import { Link, Route, Switch, useLocation } from "wouter";
+import DownloadBondButton from "@/components/download-bond-button";
 import {
   ArrowRight,
   BarChart3,
@@ -4016,7 +4017,21 @@ function BookingsPage() {
                     after consent for safety.
                   </p>
                 </div>
-                <div className="flex gap-2">
+                <div className="flex flex-wrap items-center gap-2">
+                  <DownloadBondButton
+                    bookingData={{
+                      bookingId: b.id,
+                      ownerName: b.ownerName,
+                      customerName: b.customerName || "Arjun Rao (Customer)",
+                      serviceDescription: `${b.machineryTitle} - ${b.serviceType || "Equipment Booking"}`,
+                      completionDate: b.date,
+                      totalAmount: b.totalCost,
+                      amountPaid: Math.round(b.totalCost * 0.3),
+                      remainingAmount: Math.round(b.totalCost * 0.7),
+                      dueDate: "05 Oct 2026",
+                    }}
+                    variant="outline"
+                  />
                   {b.status !== "COMPLETED" && (
                     <Button
                       variant="ghost"
