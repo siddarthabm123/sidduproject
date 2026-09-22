@@ -1,0 +1,11 @@
+{
+  "buildCommand": "cd RigLogix-runnable && npm run build",
+  "outputDirectory": "RigLogix-runnable/dist/public",
+  "framework": "vite",
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ]
+}
