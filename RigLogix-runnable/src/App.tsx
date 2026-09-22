@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import type { ButtonHTMLAttributes, FormEvent, ReactNode } from "react";
 import { Link, Route, Switch, useLocation } from "wouter";
 import DownloadBondButton from "@/components/download-bond-button";
+import BondPaperModal from "@/components/bond-paper-modal";
+import DemoMapExplorer from "@/components/demo-map-explorer";
 import {
   ArrowRight,
   BarChart3,
@@ -2051,6 +2053,16 @@ function MachineryPage() {
         title="Find the right machine."
         detail="Search the local network by application, distance and availability. Customer totals are shown without owner-side marketplace charges."
       />
+      {isDemoSession() && (
+        <div className="mb-6">
+          <DemoMapExplorer
+            onSelectMachine={(m) => {
+              const found = machinerySeed.find((x) => x.category === m.category) || machinerySeed[0];
+              setSelected(found);
+            }}
+          />
+        </div>
+      )}
       <div className="mb-6 flex flex-col gap-3 rounded-2xl border border-[#ded9ca] bg-[#fbf9f2] p-3 md:flex-row">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-3 text-[#87918d]" size={18} />
@@ -3919,9 +3931,10 @@ function RadarPage() {
 
 function BookingsPage() {
   const [bookings, setBookings] = useState<Booking[]>(() =>
-    read(keyFor("bookings"), bookingsForSession()),
+    read<Booking[]>(keyFor("bookings"), bookingsForSession()),
   );
   const [reviewing, setReviewing] = useState<Booking | null>(null);
+  const [viewingBond, setViewingBond] = useState<Booking | null>(null);
   const statuses: BookingStatus[] = [
     "PENDING",
     "CONFIRMED",
@@ -3983,8 +3996,8 @@ function BookingsPage() {
                   <h2 className="display mt-2 text-xl font-bold">
                     {b.machineryTitle}
                   </h2>
-                  <p className="mt-1 text-sm text-[#68777b]">
-                    {b.ownerName} · {b.location} · {b.date} ·{" "}
+                  <p className="mt-1 text-sm font-semibold text-[#18303a]">
+                    Owner: <span className="text-[#ee8b18]">{b.ownerName}</span> · {b.location} · {b.date} ·{" "}
                     {bookingMeasure(b)}
                   </p>
                 </div>
@@ -4018,11 +4031,19 @@ function BookingsPage() {
                   </p>
                 </div>
                 <div className="flex flex-wrap items-center gap-2">
+                  <Button
+                    variant="ghost"
+                    onClick={() => setViewingBond(b)}
+                    className="border border-[#ee8b18]/50 text-[#18303a] hover:bg-[#ee8b18]/10"
+                    data-testid={`button-view-bond-${b.id}`}
+                  >
+                    <FileText size={14} className="text-[#ee8b18]" /> View Bond Paper
+                  </Button>
                   <DownloadBondButton
                     bookingData={{
                       bookingId: b.id,
                       ownerName: b.ownerName,
-                      customerName: b.customerName || "Arjun Rao (Customer)",
+                      customerName: b.customerName || activeAccountName(),
                       serviceDescription: `${b.machineryTitle} - ${b.serviceType || "Equipment Booking"}`,
                       completionDate: b.date,
                       totalAmount: b.totalCost,
@@ -4061,16 +4082,34 @@ function BookingsPage() {
           ))
         ) : (
           <Empty
-            title="Your job board is clear"
-            detail="Book a machine from the exchange and its full milestone timeline will appear here."
+            title="No bookings yet"
+            detail="Find equipment in your area and create your first request."
             action={
               <Link href="/customer/machinery">
-                <Button>Find equipment</Button>
+                <Button>Browse equipment</Button>
               </Link>
             }
           />
         )}
       </div>
+
+      {viewingBond && (
+        <BondPaperModal
+          isOpen={true}
+          onClose={() => setViewingBond(null)}
+          bookingData={{
+            bookingId: viewingBond.id,
+            ownerName: viewingBond.ownerName,
+            customerName: viewingBond.customerName || activeAccountName(),
+            serviceDescription: `${viewingBond.machineryTitle} - ${viewingBond.serviceType || "Equipment Booking"}`,
+            completionDate: viewingBond.date,
+            totalAmount: viewingBond.totalCost,
+            amountPaid: Math.round(viewingBond.totalCost * 0.3),
+            remainingAmount: Math.round(viewingBond.totalCost * 0.7),
+            dueDate: "05 Oct 2026",
+          }}
+        />
+      )}
       {reviewing && (
         <div className="fixed inset-0 z-50 grid place-items-center bg-[#18303a]/60 p-5">
           <form
