@@ -1,0 +1,38 @@
+name: Deploy to Supabase & Build
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies in RigLogix-runnable
+        run: |
+          cd RigLogix-runnable
+          npm ci || npm install
+
+      - name: Build Web Application
+        run: |
+          cd RigLogix-runnable
+          npm run build
+
+      - name: Push DB Schema to Supabase
+        if: env.DATABASE_URL != ''
+        env:
+          DATABASE_URL: ${{ secrets.SUPABASE_DATABASE_URL }}
+        run: |
+          cd RigLogix-source-code
+          pnpm install --no-frozen-lockfile || npm install
+          npx drizzle-kit push
