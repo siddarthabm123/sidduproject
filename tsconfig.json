@@ -1,0 +1,20 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "outDir": "dist",
+    "rootDir": ".",
+    "types": ["node", "vite/client"],
+    "jsx": "react-jsx"
+  },
+  "include": [
+    "App.tsx",
+    "main.tsx",
+    "error-boundary.tsx",
+    "supabase.ts",
+    "riglogix-data.ts",
+    "vite.config.ts",
+    "bond-signature.ts",
+    "bond-pdf.ts",
+    "api/**/*.ts"
+  ]
+}
