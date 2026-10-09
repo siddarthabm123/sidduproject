@@ -1,0 +1,56 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { readFile } from 'node:fs/promises';
+import { PGlite } from '@electric-sql/pglite';
+import { pgcrypto } from '@electric-sql/pglite/contrib/pgcrypto';
+
+test('shared marketplace migration enforces ownership, availability, payment and auction invariants',async()=>{
+  const db=new PGlite({extensions:{pgcrypto}});
+  try{
+    await db.exec(`CREATE ROLE anon; CREATE ROLE authenticated; CREATE SCHEMA auth;
+      CREATE TABLE auth.users(id uuid PRIMARY KEY,email text,raw_user_meta_data jsonb DEFAULT '{}');
+      CREATE FUNCTION auth.uid() RETURNS uuid LANGUAGE sql STABLE AS $$ SELECT nullif(current_setting('request.jwt.claim.sub',true),'')::uuid $$;
+      GRANT USAGE ON SCHEMA auth TO anon,authenticated;`);
+    for(const file of ['20260920000100_riglogix_core.sql','20260920000200_riglogix_rls.sql','20260920000400_auth_wallet_booking_workflows.sql','20260920000500_lock_direct_financial_updates.sql','supabase/migrations/20260926000700_aadhaar_email_verification.sql','supabase/migrations/20260927000800_user_app_state.sql','supabase/migrations/20261008000900_secure_marketplace.sql'])await db.exec(await readFile(new URL(`../${file}`,import.meta.url),'utf8'));
+    const customer='10000000-0000-0000-0000-000000000001',owner='20000000-0000-0000-0000-000000000001',other='20000000-0000-0000-0000-000000000002';
+    const machine='30000000-0000-0000-0000-000000000001';
+    for(const [id,role] of [[customer,'customer'],[owner,'owner'],[other,'owner']])await db.query(`INSERT INTO auth.users(id,email,raw_user_meta_data) VALUES($1,$2,$3)`,[id,`${id}@example.test`,{role,full_name:role,workspace_name:role,phone:'+910000000000',address:'Test profile address'}]);
+    await db.query(`INSERT INTO equipment(id,owner_id,title,sector,category,pricing_unit,base_rate_paise,telematics_id,is_verified,available_units) VALUES($1,$2,'Excavator','Construction','Excavator','hour',10000,'test-unit',true,3)`,[machine,owner]);
+    const login=async(id:string)=>{await db.exec('RESET ROLE');await db.query(`SELECT set_config('request.jwt.claim.sub',$1,false)`,[id]);await db.exec('SET ROLE authenticated')};
+    await login(customer);
+    assert.equal((await db.query<any>('SELECT address FROM users')).rows[0].address,'Test profile address');
+    await db.query(`SELECT set_app_state_value('language','"kn"'::jsonb)`);
+    await db.query(`SELECT set_app_state_value('theme','"dark"'::jsonb)`);
+    const prefs=await db.query<{state:any}>('SELECT state FROM user_app_state');assert.deepEqual(prefs.rows[0].state,{language:'kn',theme:'dark'});
+    await assert.rejects(db.query(`SELECT set_app_state_value('bookings','[]'::jsonb)`));
+    await assert.rejects(db.query(`SELECT wallet_deposit(100000000,NULL)`),/permission denied/);
+    await assert.rejects(db.query(`UPDATE users SET role='admin' WHERE id=$1`,[customer]),/permission denied/);
+    await db.query(`SELECT update_wallet_profile('test@upi','Bank')`);
+    assert.equal((await db.query<any>(`SELECT available_balance_paise,upi_id FROM wallets`)).rows[0].available_balance_paise,0);
+    const request=()=>db.query<any>(`SELECT request_equipment_booking($1,current_date+1,'Test job site',12.97,77.60,8,'Test') AS jobs`,[[{equipment_id:machine,units:2}]]);
+    const result=await request(),job=result.rows[0].jobs[0];
+    assert.equal(job.total_cost_paise,165600);assert.equal(job.wallet_hold_paise,0);assert.equal(job.status,'pending');
+    await assert.rejects(request(),/Not enough units/);
+    assert.equal((await db.query<any>('SELECT my_booking_records() AS jobs')).rows[0].jobs[0].owner_phone,null);
+    await assert.rejects(db.query(`SELECT accept_booking($1)`,[job.id]));
+    await login(other);assert.deepEqual((await db.query<any>('SELECT my_booking_records() AS jobs')).rows[0].jobs,[]);
+    await assert.rejects(db.query(`SELECT accept_booking($1)`,[job.id]));
+    await login(owner);assert.equal((await db.query<any>('SELECT my_booking_records() AS jobs')).rows[0].jobs[0].id,job.id);
+    await assert.rejects(db.query(`UPDATE equipment SET is_verified=true WHERE id=$1`,[machine]),/permission denied/);
+    await db.query('SELECT accept_booking($1)',[job.id]);
+    await assert.rejects(db.query('SELECT accept_booking($1)',[job.id]));
+    for(let i=0;i<4;i++)await db.query('SELECT advance_booking($1)',[job.id]);
+    await assert.rejects(db.query('SELECT complete_booking($1)',[job.id]));
+    await login(customer);await db.query('SELECT complete_booking($1)',[job.id]);
+    const completed=(await db.query<any>('SELECT bond_record($1) AS bond',[job.id])).rows[0].bond;
+    assert.equal(completed.amountPaid,0);assert.equal(completed.remainingAmount,1656);assert.notEqual(completed.completionDate,'Completion pending');
+    await db.query(`SELECT review_booking($1,5,'Good work')`,[job.id]);await assert.rejects(db.query(`SELECT review_booking($1,5,'Duplicate')`,[job.id]));
+    const auction=(await db.query<any>(`INSERT INTO marketplace_auctions(customer_id,title,description,job_address,requested_date,ceiling_paise) VALUES($1,'Bulk project','Earthworks','Test address',current_date+2,100000) RETURNING id`,[customer])).rows[0].id;
+    await login(owner);await assert.rejects(db.query('SELECT place_marketplace_bid($1,$2,-1,60)',[auction,machine]));
+    await db.query('SELECT place_marketplace_bid($1,$2,80000,60)',[auction,machine]);
+    const bid=(await db.query<any>('SELECT id FROM marketplace_bids WHERE auction_id=$1',[auction])).rows[0].id;
+    await assert.rejects(db.query('SELECT award_marketplace_bid($1)',[bid]));
+    await login(customer);await db.query('SELECT award_marketplace_bid($1)',[bid]);await assert.rejects(db.query('SELECT award_marketplace_bid($1)',[bid]));
+    await login(owner);await assert.rejects(db.query('SELECT place_marketplace_bid($1,$2,75000,30)',[auction,machine]));
+  }finally{await db.close()}
+});
