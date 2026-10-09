@@ -111,7 +111,7 @@ Open the **[demo selection page](https://rigdesk-marketplace-rig-desk.vercel.app
 | **Siddartha: customer / contractor** | Equipment search, radar, owner selection, auctions, bookings, and bonds. |
 | **Mahesh: equipment owner** | Fleet listings, incoming work, bids, accepted jobs, and earnings views. |
 
-Both demos open without a password or OTP. Entering a demo reloads sample bookings, fleet, and the selected-role wallet. Demo owners, reviews, bids, equipment, and financial values illustrate the product; they are not confirmed real-world inventory or transactions.
+Both demos open without a password or OTP. Customer and owner demos share booking and auction activity on the same browser; returning to a demo preserves those records. Demo owners, reviews, bids, equipment, and financial values illustrate the product, not confirmed real-world inventory or transactions. Demo activity is not uploaded to real customer accounts.
 
 ## 6. Technology
 
@@ -157,6 +157,10 @@ RigDesk/
 | Location | Responsibility |
 | --- | --- |
 | `App.tsx` | Landing page, demo selection, accounts, dashboards, equipment, auctions, bookings, and preferences. |
+| `RealWorkspace.tsx`, `marketplace.css` | Authenticated customer and owner pages using shared database records, with localized labels and theme support. |
+| `error-boundary.tsx` | Route recovery without deleting saved activity. |
+| `marketplace-domain.ts` | Amount, unit-count, ETA, and payment validation. |
+| `interface-translations.ts` | Additional English, Hindi, and Kannada interface translations. |
 | `index.css` | Styling, themes, and responsive layouts. |
 | `supabase.ts` | Optional Supabase client. |
 | `riglogix-data.ts` | Authentication, profiles, bookings, wallet helpers, and account-state persistence. |
@@ -165,6 +169,7 @@ RigDesk/
 | `supabase/migrations/` | Additional database migrations and demo seed data. |
 | `public/assets/` | Equipment images and other visual assets. |
 | `vercel.json` | Hosting build output and route configuration. |
+| `tests/` | Regression tests, including isolated PostgreSQL ownership and booking workflow tests. |
 
 Some internal filenames and storage keys retain the earlier RigLogix name. The public project name is **RigDesk**.
 
@@ -205,13 +210,18 @@ pnpm run build
 pnpm run preview
 ```
 
-### Step 4: Check TypeScript
+### Step 4: Check TypeScript and Regression Tests
 
 ```sh
 pnpm run typecheck
+pnpm run test
 ```
 
-Production output is `dist/public`. Vite serves the frontend locally; use a Vercel-compatible development runtime to exercise the `/api` functions.
+Tests cover ownership isolation, capacity limits, server-calculated totals, blocked fake wallet credits, customer-confirmed completion, bid validation, repeated awards, document tampering, and demo/live separation. They run in an isolated PostgreSQL instance and do not write to the live Supabase project.
+
+For an optional PDF scan check, run `node --import tsx tests/render-bond.ts`, render the resulting `tmp/pdfs/rigdesk-bond-qa.pdf` with `pdftoppm -png -scale-to 1800 -singlefile tmp/pdfs/rigdesk-bond-qa.pdf tmp/pdfs/rigdesk-bond-qa`, then run `tests/check-rendered-qr.ts` with `RIGDESK_QA_IMAGE_MODULES` pointing to a local Node modules directory containing `sharp`. This checks the QR decoded from the rendered page, not just the encoded URL.
+
+Production output is `dist/public`. The development-only Vite API plugin serves bond and optional provider endpoints locally. It creates a temporary signing key when none is configured; locally generated documents stop verifying after a server restart unless a persistent key is supplied. Production requires its own private signing key.
 
 ### Environment Configuration
 
@@ -244,7 +254,13 @@ Set the Supabase URL, public anon key, and `VITE_ENABLE_SUPABASE=true`. Core dat
 
 Review dependencies and apply applicable scripts in chronological order to the target database. Applying only the later migrations to an empty project is insufficient.
 
-For real signup, align Supabase Auth email-confirmation settings and SMTP configuration with the application flow. The current no-OTP pitch path bypasses backend signup. Validate authentication and persistence together before promising cross-device account history.
+Real signup and password login always use Supabase Auth. Disabling the frontend OTP option does not bypass server-side email confirmation. If Supabase requires email confirmation but SMTP is unavailable, use the open demo for a pitch; the application does not falsely claim an email was sent or verified.
+
+The secure workspace requires `supabase/migrations/20261008000900_secure_marketplace.sql`, after the core, RLS, auth workflow, financial-lock, Aadhaar-reference, and user-app-state scripts. Back up the database and inspect its existing schema before applying migrations. Do not apply sample seeds to real user accounts. Deploy the new frontend only after the required migration succeeds.
+
+This migration adds shared equipment-unit bookings, auction and bid tables, atomic theme/language preferences, customer-confirmed completion, and database-issued bond summaries. It restricts direct financial writes, role changes, and owner self-verification. It does not delete existing records or credit wallets. Funded legacy bookings require support review rather than an automated refund.
+
+Equipment created by an owner remains unverified until a trusted database administrator reviews it. The current capacity check reserves units for the selected calendar date, not overlapping multi-day periods. Rates use each listing's billing unit; the booking modal displays the selected quantities and estimated fee. Auction awards request one unit at the agreed project price. A zero-coordinate auction record is not a confirmed GPS location.
 
 ### Deploy on Vercel
 
@@ -262,7 +278,7 @@ git commit -m "Describe the source and documentation update"
 git push origin main
 ```
 
-The GitHub workflow builds pushed changes on `main` and pull requests. Local edits reach GitHub after they are committed and pushed; the build workflow does not upload uncommitted edits or rewrite feature descriptions automatically.
+The GitHub workflow runs TypeScript checks, regression tests, and a production build on `main` and pull requests. Local edits reach GitHub after they are committed and pushed. Supabase migrations are not applied automatically by this workflow.
 
 ## 9. Revenue Model
 
@@ -279,25 +295,26 @@ Subscriptions, promoted listings, and paid coordination are proposed extensions.
 
 ## 10. Current Implementation Status
 
-The frontend is deployed on Vercel. Its demonstration uses browser storage and sample records. The source also includes Supabase integration, serverless bond services, Google Places discovery, and Gemini-assisted recommendations.
+The existing public website is deployed on Vercel. Source changes and the required database migration must be deployed separately; a local test result does not establish that the live site has been upgraded. The demo uses browser storage and sample records, while the authenticated workspace uses shared Supabase records.
 
 | Area | Current behavior and dependency |
 | --- | --- |
-| Registration and login | With email OTP disabled, creation opens a local pitch workspace and bypasses Supabase signup. Password login uses Supabase when enabled; local creation does not create a Supabase password account. |
-| Saved activity | Browser storage is scoped by account identity. Cloud state helpers require an authenticated Supabase user and the `user_app_state` migration. Cross-device persistence is not guaranteed for local pitch accounts. |
+| Registration and login | Real accounts require successful Supabase authentication and a database profile. SMTP and email-confirmation settings still govern account activation. Open demos remain available without OTP. |
+| Saved activity | Real bookings, inventory, bids, reviews, and account preferences use the database. Booking parties see shared records, with periodic refresh. Fresh accounts do not inherit sample bookings or balances. Demo activity stays in the browser. |
+| Booking security | Server functions calculate prices, check capacity and ownership, prevent repeated awards, restrict milestones, and require the customer to confirm completion. Direct client financial writes and self-verification are blocked. |
 | Payments | Wallet and settlement screens demonstrate the workflow. Real UPI transfers, escrow, and bank payouts need a payment-provider integration. |
-| Nearby providers | Google Places requires a server API key. A Maps listing does not confirm machine availability or verify a provider as a RigDesk owner. |
-| Recommendations | The Gemini endpoint requires a server API key. Recommendations do not independently confirm live inventory. |
+| Nearby providers | Google Places requires server configuration and authentication. A Maps listing does not confirm machine availability or verify a provider as a RigDesk owner. New authenticated pages currently use registered database inventory. |
+| Recommendations | The Gemini endpoint requires authentication and a server API key. Recommendations do not independently confirm live inventory. Configure quotas and abuse controls before enabling paid external services. |
 | Calling | The interface logs a consented request and can open a configured company number. Automated forwarding and audio recording require telephony integration. |
 | Aadhaar | The form checks format and checksum; it does not authenticate identity against UIDAI. Profile integration uses the final four digits. |
-| Bond verification | Signing requires `BOND_PDF_SECRET`. A valid signature checks the encoded record's integrity; it does not independently prove job completion or legally execute a contract. |
-| Translation | Language controls and dictionaries are implemented. Dynamic content and remaining pages still need translation review. |
+| Bond verification | One-page PDFs place a scannable QR at the top. Live documents require an authenticated booking party and use database totals and dates. Public verification checks the signature, paper reference, and current accepted-booking status. Cancelled records are rejected. Contacts and exact site details are excluded from the public live summary. Demo documents explicitly are not authentic booking proof. Regenerate old v1 bonds, which are no longer accepted. |
+| Translation and themes | English is the default; Hindi/Kannada labels and light/dark preferences persist across entry and workspace pages. User-entered business names and job descriptions are not automatically translated. Language quality and mobile layouts still warrant user acceptance testing. |
 
 ## 11. Next Product Milestones
 
-1. Complete real-account authentication and verify saved history across devices.
-2. Replace sample inventory with owner-managed, verified availability.
-3. Enforce booking, bidding, fleet allocation, and financial transitions on the server.
+1. Apply the tested migration to the live project and validate two real accounts across devices.
+2. Add an administrator verification interface and interval-based equipment scheduling.
+3. Expand translation and mobile acceptance testing with Kannada/Hindi speakers.
 4. Integrate real payment collection and settlement.
 5. Connect business telephony for masked forwarding and consented recording.
 6. Complete translation, accessibility, and mobile workflow validation.
