@@ -158,6 +158,7 @@ RigDesk/
 | --- | --- |
 | `App.tsx` | Landing page, demo selection, accounts, dashboards, equipment, auctions, bookings, and preferences. |
 | `RealWorkspace.tsx`, `marketplace.css` | Authenticated customer and owner pages using shared database records, with localized labels and theme support. |
+| `error-boundary.tsx` | Route recovery without deleting saved activity. |
 | `marketplace-domain.ts` | Amount, unit-count, ETA, and payment validation. |
 | `interface-translations.ts` | Additional English, Hindi, and Kannada interface translations. |
 | `index.css` | Styling, themes, and responsive layouts. |

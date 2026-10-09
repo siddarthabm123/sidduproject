@@ -37,16 +37,7 @@ function toError(value: unknown): Error {
 
 function DefaultFallback({ error, resetError }: ErrorFallbackProps) {
   const resetRigLogix = () => {
-    try {
-      for (let index = window.localStorage.length - 1; index >= 0; index -= 1) {
-        const key = window.localStorage.key(index);
-        if (key?.startsWith('riglogix-')) {
-          window.localStorage.removeItem(key);
-        }
-      }
-    } catch {
-      // Ignore blocked storage; reload still gives the app a clean render path.
-    }
+    // Recover the route without erasing saved bookings or preferences.
     resetError();
     window.location.href = '/sign-in';
   };
@@ -72,7 +63,7 @@ function DefaultFallback({ error, resetError }: ErrorFallbackProps) {
           onClick={resetRigLogix}
           className="mt-4 rounded bg-gray-900 px-4 py-2 text-sm text-white hover:bg-gray-700"
         >
-          Reset app and try again
+          Return to account access
         </button>
       </div>
     </div>
