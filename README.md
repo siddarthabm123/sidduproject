@@ -256,11 +256,17 @@ Review dependencies and apply applicable scripts in chronological order to the t
 
 Real signup and password login always use Supabase Auth. Disabling the frontend OTP option does not bypass server-side email confirmation. If Supabase requires email confirmation but SMTP is unavailable, use the open demo for a pitch; the application does not falsely claim an email was sent or verified.
 
-The secure workspace requires `supabase/migrations/20261008000900_secure_marketplace.sql`, after the core, RLS, auth workflow, financial-lock, Aadhaar-reference, and user-app-state scripts. Back up the database and inspect its existing schema before applying migrations. Do not apply sample seeds to real user accounts. Deploy the new frontend only after the required migration succeeds.
+The secure workspace requires `supabase/migrations/20261008000900_secure_marketplace.sql`, after the core, RLS, auth workflow, financial-lock, Aadhaar-reference, and user-app-state scripts, followed by `supabase/migrations/20261010001000_marketplace_reservations.sql`. Back up the database and inspect its existing schema before applying migrations. Do not apply sample seeds to real user accounts. Deploy the new frontend only after both migrations succeed.
 
 This migration adds shared equipment-unit bookings, auction and bid tables, atomic theme/language preferences, customer-confirmed completion, and database-issued bond summaries. It restricts direct financial writes, role changes, and owner self-verification. It does not delete existing records or credit wallets. Funded legacy bookings require support review rather than an automated refund.
 
-Equipment created by an owner remains unverified until a trusted database administrator reviews it. The current capacity check reserves units for the selected calendar date, not overlapping multi-day periods. Rates use each listing's billing unit; the booking modal displays the selected quantities and estimated fee. Auction awards request one unit at the agreed project price. A zero-coordinate auction record is not a confirmed GPS location.
+Equipment created by an owner remains unverified until a trusted database administrator reviews it. Changes to registration, title, category, capacity, specifications or fleet size invalidate owner verification. Rates and status can change without re-verification.
+
+Reservations cover every calendar day from the start through the selected last day. Hourly bookings reserve at least `ceil(hours / 24)` days; non-hourly bookings default to one day unless a last day is supplied. Overlap checks use maximum daily load under equipment row locks, rather than adding disjoint bookings together. Scheduling is deliberately day-level, not shift-level. Historical non-hourly jobs are backfilled as one-day reservations because their duration was not previously recorded; an administrator must reconcile longer historical jobs before enabling new bookings.
+
+Pending reservations expire after 24 hours and cannot be accepted after expiry or their start date. Owners can decline pending requests. Capacity ignores expired requests immediately; each party's next refresh marks them cancelled. Customers can cancel only before dispatch. Once work is underway, parties report an issue instead; open issues prevent completion until a trusted administrator resolves them. Support/admin review remains manual, including funded legacy bookings. No automatic refund or payout is claimed.
+
+Booking requests use account-scoped idempotency keys. A retry after a lost response returns the original records; a successful save remains successful if the following refresh fails. The browser stores only a request fingerprint and ID, not the booking address or instructions. Auction awards reserve one unit for the declared project duration. Public auction discovery exposes a separate work summary and approximate area; private instructions stay with the customer and exact addresses unlock for the assigned owner after acceptance. A zero-coordinate auction record is not a confirmed GPS location.
 
 ### Deploy on Vercel
 
@@ -301,19 +307,19 @@ The existing public website is deployed on Vercel. Source changes and the requir
 | --- | --- |
 | Registration and login | Real accounts require successful Supabase authentication and a database profile. SMTP and email-confirmation settings still govern account activation. Open demos remain available without OTP. |
 | Saved activity | Real bookings, inventory, bids, reviews, and account preferences use the database. Booking parties see shared records, with periodic refresh. Fresh accounts do not inherit sample bookings or balances. Demo activity stays in the browser. |
-| Booking security | Server functions calculate prices, check capacity and ownership, prevent repeated awards, restrict milestones, and require the customer to confirm completion. Direct client financial writes and self-verification are blocked. |
+| Booking security | Server functions calculate prices, check interval capacity and ownership, expire pending reservations, prevent duplicate retry saves and repeated awards, restrict milestones, and require customer-confirmed completion. Work already dispatched uses issue review instead of unilateral cancellation. Direct client financial writes and self-verification are blocked. |
 | Payments | Wallet and settlement screens demonstrate the workflow. Real UPI transfers, escrow, and bank payouts need a payment-provider integration. |
 | Nearby providers | Google Places requires server configuration and authentication. A Maps listing does not confirm machine availability or verify a provider as a RigDesk owner. New authenticated pages currently use registered database inventory. |
 | Recommendations | The Gemini endpoint requires authentication and a server API key. Recommendations do not independently confirm live inventory. Configure quotas and abuse controls before enabling paid external services. |
 | Calling | The interface logs a consented request and can open a configured company number. Automated forwarding and audio recording require telephony integration. |
 | Aadhaar | The form checks format and checksum; it does not authenticate identity against UIDAI. Profile integration uses the final four digits. |
 | Bond verification | One-page PDFs place a scannable QR at the top. Live documents require an authenticated booking party and use database totals and dates. Public verification checks the signature, paper reference, and current accepted-booking status. Cancelled records are rejected. Contacts and exact site details are excluded from the public live summary. Demo documents explicitly are not authentic booking proof. Regenerate old v1 bonds, which are no longer accepted. |
-| Translation and themes | English is the default; Hindi/Kannada labels and light/dark preferences persist across entry and workspace pages. User-entered business names and job descriptions are not automatically translated. Language quality and mobile layouts still warrant user acceptance testing. |
+| Translation and themes | English is the default; Hindi/Kannada controls, known equipment categories, validation and status messages use a shared catalog. Changing language does not remount the real workspace or erase entered forms. User-entered business names, custom categories and job descriptions are not automatically translated. Language quality and mobile layouts still warrant user acceptance testing. |
 
 ## 11. Next Product Milestones
 
 1. Apply the tested migration to the live project and validate two real accounts across devices.
-2. Add an administrator verification interface and interval-based equipment scheduling.
+2. Add an administrator verification/dispute interface and shift-level scheduling; reconcile historical multi-day jobs.
 3. Expand translation and mobile acceptance testing with Kannada/Hindi speakers.
 4. Integrate real payment collection and settlement.
 5. Connect business telephony for masked forwarding and consented recording.

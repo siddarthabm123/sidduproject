@@ -1,0 +1,28 @@
+kind = "web"
+previewPath = "/"
+title = "RigDesk Marketplace"
+description = "A responsive heavy machinery marketplace connecting contractors with verified equipment owners through discovery, transparent pricing, booking, reverse auctions, radar-style proximity, and account dashboards."
+version = "1.0.0"
+id = "artifacts/riglogix"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 20366
+
+[services.development]
+run = "pnpm --filter @workspace/riglogix run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/riglogix", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/riglogix/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "20366"
+BASE_PATH = "/"

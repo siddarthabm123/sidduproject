@@ -36,3 +36,25 @@ export function paymentSummary(total: number, paid = 0) {
   }
   return { total, paid, remaining: Math.round((total - paid) * 100) / 100 };
 }
+
+export async function saveAndRefresh(
+  action: () => PromiseLike<{ error: unknown }>,
+  refresh: () => Promise<unknown>,
+) {
+  const result = await action();
+  if (result.error) throw result.error;
+  try { await refresh(); return { saved: true, refreshError: null }; }
+  catch (refreshError) { return { saved: true, refreshError }; }
+}
+
+export async function bookingRequestKey(customer: string, payload: unknown, storage: Pick<Storage,'getItem'|'setItem'>) {
+  const fingerprint = Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(JSON.stringify(payload)))))
+    .map(byte => byte.toString(16).padStart(2, '0')).join('');
+  const storageKey = `rigdesk-booking-request-${customer}`;
+  let previous: { fingerprint: string; key: string } | null = null;
+  try { previous = JSON.parse(storage.getItem(storageKey) || 'null'); } catch { /* Ignore invalid local cache. */ }
+  if (previous?.fingerprint === fingerprint && /^[0-9a-f-]{36}$/i.test(previous.key)) return previous.key;
+  const key = crypto.randomUUID();
+  storage.setItem(storageKey, JSON.stringify({ fingerprint, key }));
+  return key;
+}
