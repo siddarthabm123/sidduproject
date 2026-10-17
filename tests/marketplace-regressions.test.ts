@@ -76,7 +76,12 @@ test('remaining marketplace database findings have regression coverage',async t=
       const bid=(await f.db.query<any>('SELECT id FROM marketplace_bids WHERE auction_id=$1',[auction])).rows[0].id;
       await f.login(customer);const awarded=(await f.db.query<any>('SELECT to_jsonb(award_marketplace_bid($1)) AS job',[bid])).rows[0].job;
       await f.login(owner);assert.equal((await f.db.query('SELECT * FROM marketplace_auctions')).rows.length,0);
+      await assert.rejects(f.db.query('SELECT job_address FROM bookings WHERE id=$1',[awarded.id]),/permission denied/);
+      let pending=(await f.db.query<any>('SELECT my_booking_records() AS jobs')).rows[0].jobs.find((j:any)=>j.id===awarded.id);
+      assert.equal(pending.job_address,null);assert.equal(pending.instructions,null);
       await f.db.query('SELECT accept_booking($1)',[awarded.id]);
+      pending=(await f.db.query<any>('SELECT my_booking_records() AS jobs')).rows[0].jobs.find((j:any)=>j.id===awarded.id);
+      assert.equal(pending.instructions,'Private access instructions');
       records=(await f.db.query<any>('SELECT marketplace_auction_records() AS auctions')).rows[0].auctions;
       assert.equal(records.find((a:any)=>a.id===auction).job_address,'Private street and gate');
       await f.login(other);await assert.rejects(f.request(id,11),/Not enough units/);

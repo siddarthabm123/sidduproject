@@ -11,6 +11,9 @@ ALTER TABLE bookings ALTER COLUMN reservation_start SET NOT NULL;
 ALTER TABLE bookings ALTER COLUMN reservation_end SET NOT NULL;
 ALTER TABLE bookings ADD CONSTRAINT booking_reservation_interval CHECK(reservation_end>reservation_start);
 CREATE INDEX bookings_reservation_idx ON bookings(equipment_id,reservation_start,reservation_end);
+REVOKE SELECT ON bookings FROM authenticated;
+GRANT SELECT(id,public_code,customer_id,owner_id,equipment_id,status,accepted_at,completed_at,completion_requested_at,auction_id,
+  requested_date,reservation_start,reservation_end,request_expires_at,equipment_units,quantity,billing_unit,total_cost_paise,amount_paid_paise) ON bookings TO authenticated;
 
 CREATE TABLE booking_requests(
   customer_id uuid NOT NULL REFERENCES users(id),request_id uuid NOT NULL,
@@ -139,10 +142,12 @@ CREATE OR REPLACE FUNCTION public.complete_booking(p_booking_id uuid)
 RETURNS bookings LANGUAGE plpgsql SECURITY DEFINER SET search_path=public AS $$
 DECLARE result bookings;
 BEGIN
+  SELECT * INTO result FROM bookings WHERE id=p_booking_id AND customer_id=auth.uid() FOR UPDATE;
+  IF result.id IS NULL OR result.status<>'in_progress' OR result.completion_requested_at IS NULL OR result.wallet_hold_paise<>0 OR
+    EXISTS(SELECT 1 FROM booking_disputes WHERE booking_id=p_booking_id AND status='OPEN') THEN
+    RAISE EXCEPTION 'Customer confirmation and resolution of open issues are required'; END IF;
   UPDATE bookings SET status='completed',completed_at=now(),updated_at=now()
-  WHERE id=p_booking_id AND customer_id=auth.uid() AND status='in_progress' AND completion_requested_at IS NOT NULL AND wallet_hold_paise=0
-    AND NOT EXISTS(SELECT 1 FROM booking_disputes WHERE booking_id=p_booking_id AND status='OPEN') RETURNING * INTO result;
-  IF result.id IS NULL THEN RAISE EXCEPTION 'Customer confirmation and resolution of open issues are required'; END IF;
+  WHERE id=p_booking_id RETURNING * INTO result;
   RETURN result;
 END $$;
 
@@ -153,6 +158,10 @@ BEGIN
   WHERE auth.uid() IN(customer_id,owner_id) AND status='pending' AND request_expires_at<=now() AND wallet_hold_paise=0;
   RETURN (SELECT coalesce(jsonb_agg(to_jsonb(b)||jsonb_build_object('equipment_title',e.title,'owner_name',o.workspace_name,'customer_name',c.full_name,
     'dispute_status',d.status,'dispute_reason',d.reason,
+    'job_address',CASE WHEN b.customer_id=auth.uid() OR b.accepted_at IS NOT NULL AND b.status<>'cancelled' THEN b.job_address ELSE NULL END,
+    'job_lat',CASE WHEN b.customer_id=auth.uid() OR b.accepted_at IS NOT NULL AND b.status<>'cancelled' THEN b.job_lat ELSE NULL END,
+    'job_lng',CASE WHEN b.customer_id=auth.uid() OR b.accepted_at IS NOT NULL AND b.status<>'cancelled' THEN b.job_lng ELSE NULL END,
+    'instructions',CASE WHEN b.customer_id=auth.uid() OR b.accepted_at IS NOT NULL AND b.status<>'cancelled' THEN b.instructions ELSE NULL END,
     'owner_phone',CASE WHEN b.accepted_at IS NOT NULL AND b.status<>'cancelled' THEN o.phone END,
     'customer_phone',CASE WHEN b.accepted_at IS NOT NULL AND b.status<>'cancelled' THEN c.phone END) ORDER BY b.created_at DESC),'[]'::jsonb)
     FROM bookings b JOIN equipment e ON e.id=b.equipment_id JOIN users o ON o.id=b.owner_id JOIN users c ON c.id=b.customer_id
@@ -207,10 +216,10 @@ BEGIN
   fee:=round(offer.amount_paise::numeric*0.035);
   IF offer.amount_paise+fee>2147483647 THEN RAISE EXCEPTION 'Booking amount exceeds the supported limit'; END IF;
   INSERT INTO bookings(public_code,customer_id,owner_id,equipment_id,billing_unit,quantity,unit_rate_paise,requested_date,job_address,job_lat,job_lng,
-    base_cost_paise,platform_fee_paise,total_cost_paise,owner_earnings_paise,auction_id,payment_due_at,reservation_start,reservation_end,request_expires_at)
+    base_cost_paise,platform_fee_paise,total_cost_paise,owner_earnings_paise,auction_id,payment_due_at,reservation_start,reservation_end,request_expires_at,instructions)
   VALUES('RD-'||gen_random_uuid()::text,auth.uid(),offer.owner_id,offer.equipment_id,'project',1,offer.amount_paise,target.requested_date,target.job_address,0,0,
     offer.amount_paise,fee,offer.amount_paise+fee,offer.amount_paise,target.id,target.requested_date+target.duration_days+interval '7 days',
-    target.requested_date,target.requested_date+target.duration_days,now()+interval '24 hours') RETURNING * INTO result;
+    target.requested_date,target.requested_date+target.duration_days,now()+interval '24 hours',target.description) RETURNING * INTO result;
   UPDATE marketplace_auctions SET status='AWARDED' WHERE id=target.id;
   RETURN result;
 END $$;

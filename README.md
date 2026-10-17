@@ -10,9 +10,11 @@ Built for construction, agriculture, borewell drilling, logistics, and infrastru
 >
 > Customers save. Equipment works. Owners get paid faster.
 
-**[Visit RigDesk](https://rigdesk-marketplace-rig-desk.vercel.app/)** | **[Choose a demo profile](https://rigdesk-marketplace-rig-desk.vercel.app/demo)** | **[Account access](https://rigdesk-marketplace-rig-desk.vercel.app/sign-in)**
+**[Visit RigDesk](https://rigdesk-marketplace-rig-logi-x.vercel.app/)** | **[Choose a demo profile](https://rigdesk-marketplace-rig-logi-x.vercel.app/demo)** | **[Account access](https://rigdesk-marketplace-rig-logi-x.vercel.app/sign-in)**
 
 **Source repository:** [siddarthabm123/sidduproject](https://github.com/siddarthabm123/sidduproject)
+
+**Strategy and rollout:** [Business Model Canvas](docs/business-model-canvas.md) | [Database and deployment runbook](docs/deployment.md)
 
 ![Machinery featured in the RigDesk prototype](public/assets/hero-machinery.jpg)
 
@@ -22,15 +24,18 @@ The web prototype is deployed on **Vercel**. Start with the demo selector to exp
 
 | Page | Live link |
 | --- | --- |
-| Official website | [RigDesk Marketplace](https://rigdesk-marketplace-rig-desk.vercel.app/) |
-| Demo profile selection | [Choose Customer or Equipment Owner](https://rigdesk-marketplace-rig-desk.vercel.app/demo) |
-| Create account / login | [Account Access](https://rigdesk-marketplace-rig-desk.vercel.app/sign-in) |
-| Customer equipment search | [Find Equipment](https://rigdesk-marketplace-rig-desk.vercel.app/customer/machinery) |
-| Customer equipment map | [Equipment Radar](https://rigdesk-marketplace-rig-desk.vercel.app/customer/radar) |
-| Project bidding | [Reverse Auctions](https://rigdesk-marketplace-rig-desk.vercel.app/customer/auctions) |
-| Customer bookings | [My Bookings](https://rigdesk-marketplace-rig-desk.vercel.app/customer/bookings) |
-| Owner fleet management | [My Fleet](https://rigdesk-marketplace-rig-desk.vercel.app/owner/fleet) |
-| Owner requests and bids | [Jobs and Bids](https://rigdesk-marketplace-rig-desk.vercel.app/owner/jobs) |
+| Official website | [RigDesk Marketplace](https://rigdesk-marketplace-rig-logi-x.vercel.app/) |
+| Demo profile selection | [Choose Customer or Equipment Owner](https://rigdesk-marketplace-rig-logi-x.vercel.app/demo) |
+| Create account / login | [Account Access](https://rigdesk-marketplace-rig-logi-x.vercel.app/sign-in) |
+| Customer equipment search | [Find Equipment](https://rigdesk-marketplace-rig-logi-x.vercel.app/customer/machinery) |
+| Customer equipment map | [Equipment Radar](https://rigdesk-marketplace-rig-logi-x.vercel.app/customer/radar) |
+| Project bidding | [Reverse Auctions](https://rigdesk-marketplace-rig-logi-x.vercel.app/customer/auctions) |
+| Customer bookings | [My Bookings](https://rigdesk-marketplace-rig-logi-x.vercel.app/customer/bookings) |
+| Customer workforce | [Hire Workers](https://rigdesk-marketplace-rig-logi-x.vercel.app/dashboard/customer/hire-workers) |
+| Owner fleet management | [My Fleet](https://rigdesk-marketplace-rig-logi-x.vercel.app/owner/fleet) |
+| Owner requests and bids | [Jobs and Bids](https://rigdesk-marketplace-rig-logi-x.vercel.app/owner/jobs) |
+| Owner fuel discounts | [Fuel Hub](https://rigdesk-marketplace-rig-logi-x.vercel.app/dashboard/owner/fuel-hub) |
+| Owner workforce | [Hire Workforce](https://rigdesk-marketplace-rig-logi-x.vercel.app/dashboard/owner/workforce) |
 
 Workspace links require the corresponding customer or owner session. Select **Siddartha** or **Mahesh** on the demo page first.
 
@@ -99,12 +104,22 @@ flowchart LR
 | Contact and call controls | Support communication after confirmation and record call requests with consent. |
 | Wallet and settlement views | Demonstrate reserve amounts, cancellation rules, earnings, and payment status. |
 | Language and theme options | Offer English, Hindi, Kannada, light, and dark preferences. |
+| Fuel bunks and partner vouchers | Filter nearby pumps, compare contracted discounts and generate printable QR vouchers. |
+| Worker profiles and hiring | Find operators, drillers, mechanics and labour; manage daily/monthly hiring requests with clear verification badges. |
+
+### New Service Layers (Local Implementation)
+
+The **Fuel hub** is available in the owner menu at `/dashboard/owner/fuel-hub`. Both dashboards now have a **Workforce** menu: `/dashboard/owner/workforce` and `/dashboard/customer/hire-workers`, with a three-step profile form at `/dashboard/worker/create-profile`.
+
+These additions include TypeScript APIs, transactional PostgreSQL migrations, private document uploads, Hindi/Kannada UI labels and automated tests. Demo stations/workers are clearly labelled fictional samples. Real accounts require the new Supabase migrations and actual approved partners/worker registrations. The deployed state is tracked in [the rollout runbook](docs/deployment.md).
+
+Setup, permissions, APIs and limitations: [Fuel Hub](docs/fuel-hub.md) and [Worker Marketplace](docs/workforce.md). Hiring is a request/acceptance workflow, not payroll or automated identity/licence verification. Fuel vouchers are discount entitlements, not fuel payments.
 
 Equipment examples include excavators, tippers, borewell rigs, tractors, tractor trailers, motor graders, and skid-steer loaders. Sample auctions cover agriculture, construction, and logistics work.
 
 ## 5. Explore the Demo
 
-Open the **[demo selection page](https://rigdesk-marketplace-rig-desk.vercel.app/demo)** and choose:
+Open the **[demo selection page](https://rigdesk-marketplace-rig-logi-x.vercel.app/demo)** and choose:
 
 | Profile | What to explore |
 | --- | --- |
@@ -250,9 +265,9 @@ Set a strong private signing secret before generating signed bonds. Variables pr
 
 ### Supabase Setup
 
-Set the Supabase URL, public anon key, and `VITE_ENABLE_SUPABASE=true`. Core database scripts are at the repository root, including `20260920000100_riglogix_core.sql` and `20260920000200_riglogix_rls.sql`. Later migrations in `supabase/migrations/` cover demo data, Aadhaar references, and account-state storage.
+Set the Supabase URL, public anon key, and `VITE_ENABLE_SUPABASE=true`. Core database scripts are at the repository root, including `20260920000100_riglogix_core.sql` and `20260920000200_riglogix_rls.sql`. Later migrations in `supabase/migrations/` cover Aadhaar references, account state, marketplace reservations, escrow, fuel and workforce. Do not apply the fictional demo seed to a live project.
 
-Review dependencies and apply applicable scripts in chronological order to the target database. Applying only the later migrations to an empty project is insufficient.
+Review dependencies and apply applicable scripts in chronological order to the target database. Applying only the later migrations to an empty project is insufficient. Use the read-only [preflight audit](supabase/preflight.sql) and [runbook](docs/deployment.md) to check the target schema before any write.
 
 Real signup and password login always use Supabase Auth. Disabling the frontend OTP option does not bypass server-side email confirmation. If Supabase requires email confirmation but SMTP is unavailable, use the open demo for a pitch; the application does not falsely claim an email was sent or verified.
 
@@ -297,18 +312,18 @@ The prototype includes a platform-fee calculation in booking estimates. A produc
 | Bulk-project coordination | Fees for managing multi-machine requirements and longer projects. |
 | Promoted listings | Clearly labelled paid visibility for owners. |
 
-Subscriptions, promoted listings, and paid coordination are proposed extensions. No proven revenue, traction, or fixed commission rate is claimed.
+Subscriptions, promoted listings, and paid coordination are proposed extensions. No proven revenue, traction, or fixed commission rate is claimed. The [Business Model Canvas](docs/business-model-canvas.md) lays out the nine blocks, a focused launch sequence, pricing hypotheses, illustrative unit economics and pilot measures.
 
 ## 10. Current Implementation Status
 
-The existing public website is deployed on Vercel. Source changes and the required database migration must be deployed separately; a local test result does not establish that the live site has been upgraded. The demo uses browser storage and sample records, while the authenticated workspace uses shared Supabase records.
+The updated prototype was deployed to [Vercel production](https://rigdesk-marketplace-rig-logi-x.vercel.app/) on 17 October 2026. Demo fuel and workforce pages run with labelled sample records. Frontend/function deployment and database migrations are separate operations: the target Supabase API did not expose the secure marketplace, fuel or workforce RPCs in the latest read-only check. Real-account workflows need the reviewed migrations; see the [deployment runbook](docs/deployment.md). Demo data stays in the browser, while the authenticated workspace expects shared Supabase records.
 
 | Area | Current behavior and dependency |
 | --- | --- |
 | Registration and login | Real accounts require successful Supabase authentication and a database profile. SMTP and email-confirmation settings still govern account activation. Open demos remain available without OTP. |
 | Saved activity | Real bookings, inventory, bids, reviews, and account preferences use the database. Booking parties see shared records, with periodic refresh. Fresh accounts do not inherit sample bookings or balances. Demo activity stays in the browser. |
 | Booking security | Server functions calculate prices, check interval capacity and ownership, expire pending reservations, prevent duplicate retry saves and repeated awards, restrict milestones, and require customer-confirmed completion. Work already dispatched uses issue review instead of unilateral cancellation. Direct client financial writes and self-verification are blocked. |
-| Payments | Wallet and settlement screens demonstrate the workflow. Real UPI transfers, escrow, and bank payouts need a payment-provider integration. |
+| Payments | A new transaction-safe B2B funding-reserve service supports verified-balance/card locks, inspection sign-off, commission, queued connected-account transfers, refunds and dispute hooks. Disabled by default; not applied to production. Prototype wallets remain separate. See [payment service documentation](docs/payments.md) for provider setup and limitations. |
 | Nearby providers | Google Places requires server configuration and authentication. A Maps listing does not confirm machine availability or verify a provider as a RigDesk owner. New authenticated pages currently use registered database inventory. |
 | Recommendations | The Gemini endpoint requires authentication and a server API key. Recommendations do not independently confirm live inventory. Configure quotas and abuse controls before enabling paid external services. |
 | Calling | The interface logs a consented request and can open a configured company number. Automated forwarding and audio recording require telephony integration. |
@@ -324,3 +339,9 @@ The existing public website is deployed on Vercel. Source changes and the requir
 4. Integrate real payment collection and settlement.
 5. Connect business telephony for masked forwarding and consented recording.
 6. Complete translation, accessibility, and mobile workflow validation.
+
+## 12. Escrow and Invoice Service
+
+The new backend layer uses `payment_escrows` linked to bookings, row-locked PostgreSQL functions, the official Stripe SDK, a durable transfer/refund outbox, and deduplicated signed webhook events. Clean post-return inspections require contractor sign-off; funded payouts are queued with a 48-hour deadline and marked released only after matched gateway confirmation. Damage flags freeze funds automatically. Unfunded signed-off jobs can create deferred invoices and vendor factoring requests; financing approval and advances remain a lender integration, not simulated cash.
+
+Apply `supabase/migrations/20261012001100_payment_escrow.sql` only after all earlier required migrations in staging. No production funds have been moved. For endpoint examples, accounting units, provider onboarding, worker scheduling, tests and rollout prerequisites, read [docs/payments.md](docs/payments.md).
