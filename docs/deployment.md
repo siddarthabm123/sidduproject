@@ -2,9 +2,9 @@
 
 ## Observed State, 13-17 October 2026
 
-The updated prototype was deployed to [the RigDesk production URL](https://rigdesk-marketplace-rig-logi-x.vercel.app/) on 17 October 2026. The Vercel project has production Supabase browser configuration and bond-signing configuration. Read-only public RPC probes returned `PGRST202` for `marketplace_equipment`, `fuel_hub_context` and `my_workforce_records`: these functions are not exposed in the target API schema cache. This does not prove which other tables or migrations exist.
+The updated prototype was deployed to [the RigDesk production URL](https://rigdesk-marketplace-rig-logi-x.vercel.app/) on 17 October 2026. The Vercel project has production Supabase browser configuration and bond-signing configuration. Production `/`, `/demo`, fuel hub and customer workforce routes returned HTTP 200; unauthenticated fuel/workforce APIs returned 401 and the disabled payment endpoint returned 503. Read-only public RPC probes on 17 October returned `PGRST202` for `marketplace_equipment`, `fuel_hub_context` and `my_workforce_records`: these functions are not exposed in the target API schema cache. This does not prove which other tables or migrations exist.
 
-The Supabase CLI is not authenticated. Its interactive login did not start in the agent's JSON output mode, and no access token is configured. No production SQL migrations have been applied in this setup session. The authenticated SQL editor cannot be controlled through the available computer-use surface. A frontend deployment does not establish database readiness. Do not use the public anon key to attempt database administration or bypass RLS.
+The Supabase CLI is not authenticated yet. A browser login flow was started, but it requires the account owner to complete the one-time verification. No production SQL migrations have been applied in this setup session. The authenticated SQL editor cannot be controlled through the available computer-use surface. A frontend deployment does not establish database readiness. Do not use the public anon key to attempt database administration or bypass RLS.
 
 ## Database Rollout
 
