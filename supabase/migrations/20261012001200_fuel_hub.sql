@@ -156,7 +156,7 @@ BEGIN
   LOOP
     BEGIN
       INSERT INTO fuel_vouchers(owner_id,bunk_id,equipment_id,fuel_type,quantity_litres,discount_rate,estimated_savings,voucher_code,request_id)
-      VALUES(actor,p_bunk_id,p_equipment_id,p_fuel,p_quantity,station.discount_per_litre,round(p_quantity*station.discount_per_litre,2),upper(encode(gen_random_bytes(4),'hex')),p_request_id)
+      VALUES(actor,p_bunk_id,p_equipment_id,p_fuel,p_quantity,station.discount_per_litre,round(p_quantity*station.discount_per_litre,2),upper(left(replace(gen_random_uuid()::text,'-',''),8)),p_request_id)
       RETURNING * INTO row;
       RETURN to_jsonb(row);
     EXCEPTION WHEN unique_violation THEN

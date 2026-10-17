@@ -4,7 +4,7 @@ This is a server-side service layer on the existing Node.js/TypeScript and Supab
 
 ## Models and Money
 
-Apply `supabase/migrations/20261012001100_payment_escrow.sql` after the core schema and migrations through `20261010001000_marketplace_reservations.sql` in staging first. The migration is wrapped in `BEGIN` / `COMMIT` and does not backfill prototype wallet balances as real money.
+The escrow schema was installed in the existing production Supabase project on 17 October 2026; payment APIs remain disabled. For a new environment, apply `supabase/migrations/20261012001100_payment_escrow.sql` after the core schema and migrations through `20261010001000_marketplace_reservations.sql` in staging first, followed by `20261017001400_explicit_rpc_permissions.sql` after the feature schemas. Updates are wrapped in `BEGIN` / `COMMIT` and do not backfill prototype wallet balances as real money.
 
 `payment_escrows` is the database representation of `PaymentEscrow`, linked one-to-one to a booking. It contains the requested `id`, `booking_id`, `contractor_id`, `vendor_id`, `locked_amount`, `status`, `payout_due_date`, and `created_at`, plus funding evidence, idempotency, commission and settlement fields. All monetary fields are integer INR paise, never floating-point rupees. Current booking amount limits remain INR 21,474,836.47. Currency conversion is not implemented.
 
@@ -86,7 +86,7 @@ The `PaymentEscrow` name describes this application's funding-reserve ledger; it
 
 Balance top-up chargebacks freeze the contractor's verified balance and unsettled balance-funded escrow. Resolving the incident and clearing this freeze requires trusted financial reconciliation; a new top-up does not silently remove the freeze. Only platform-account webhook events are accepted, not financial events issued on connected accounts.
 
-This implementation has not moved real money or applied its migration to production. Production rollout also needs payment UI integration, audit/retention policy, reconciliation dashboards, legal/commercial approval, full PostgreSQL multi-connection concurrency tests, and provider staging tests.
+The database schema is installed in production, but this implementation has not moved real money. Payment activation still needs payment UI integration, audit/retention policy, reconciliation dashboards, legal/commercial approval, full PostgreSQL multi-connection concurrency tests, and provider staging tests.
 
 ## Tests
 

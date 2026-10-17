@@ -40,7 +40,11 @@ test('workforce PostgreSQL profile privacy, review and hiring lifecycle',async t
     CREATE TABLE storage.objects(id uuid DEFAULT gen_random_uuid(),bucket_id text,name text);ALTER TABLE storage.objects ENABLE ROW LEVEL SECURITY;
     GRANT USAGE ON SCHEMA auth,storage TO authenticated,anon;GRANT SELECT,INSERT ON storage.objects TO authenticated;`);
   await db.exec(await readFile(new URL('../20260920000100_riglogix_core.sql',import.meta.url),'utf8'));
+  await db.exec('ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT EXECUTE ON FUNCTIONS TO anon,authenticated; ALTER DEFAULT PRIVILEGES IN SCHEMA app_private GRANT EXECUTE ON FUNCTIONS TO anon,authenticated;');
   await db.exec(await readFile(new URL('../supabase/migrations/20261012001300_workforce.sql',import.meta.url),'utf8'));
+  await db.exec(await readFile(new URL('../supabase/migrations/20261017001400_explicit_rpc_permissions.sql',import.meta.url),'utf8'));
+  assert.equal((await db.query<any>(`SELECT has_function_privilege('anon','search_workers(double precision,double precision,integer,text,text,text,text)','EXECUTE') AS allowed`)).rows[0].allowed,false);
+  assert.equal((await db.query<any>(`SELECT has_function_privilege('authenticated','app_private.worker_admin()','EXECUTE') AS allowed`)).rows[0].allowed,true);
   for(const [id,role] of [[manager,'owner'],[customer,'customer'],[owner,'owner'],[admin,'admin'],[stranger,'customer']])await db.query(`INSERT INTO users(id,role,full_name,workspace_name,email) VALUES($1::uuid,$2::user_role,$2::text,$2::text,$1::text||'@test.local')`,[id,role]);
   await login(manager);await db.query(`INSERT INTO storage.objects(bucket_id,name) VALUES('worker-documents',$1),('worker-documents',$2)`,[govt,license]);
   await t.test('private uploads and profile registration cannot forge verification or repeat records',async()=>{

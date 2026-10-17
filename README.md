@@ -111,7 +111,7 @@ flowchart LR
 
 The **Fuel hub** is available in the owner menu at `/dashboard/owner/fuel-hub`. Both dashboards now have a **Workforce** menu: `/dashboard/owner/workforce` and `/dashboard/customer/hire-workers`, with a three-step profile form at `/dashboard/worker/create-profile`.
 
-These additions include TypeScript APIs, transactional PostgreSQL migrations, private document uploads, Hindi/Kannada UI labels and automated tests. Demo stations/workers are clearly labelled fictional samples. Real accounts require the new Supabase migrations and actual approved partners/worker registrations. The deployed state is tracked in [the rollout runbook](docs/deployment.md).
+These additions include TypeScript APIs, transactional PostgreSQL updates, private document uploads, Hindi/Kannada UI labels and automated tests. The existing production Supabase project was updated in place on 17 October 2026. Demo stations/workers are clearly labelled fictional samples; real accounts use actual approved partners and registered workers. The verified database state is tracked in [the rollout runbook](docs/deployment.md).
 
 Setup, permissions, APIs and limitations: [Fuel Hub](docs/fuel-hub.md) and [Worker Marketplace](docs/workforce.md). Hiring is a request/acceptance workflow, not payroll or automated identity/licence verification. Fuel vouchers are discount entitlements, not fuel payments.
 
@@ -316,14 +316,14 @@ Subscriptions, promoted listings, and paid coordination are proposed extensions.
 
 ## 10. Current Implementation Status
 
-The updated prototype was deployed to [Vercel production](https://rigdesk-marketplace-rig-logi-x.vercel.app/) on 17 October 2026. Demo fuel and workforce pages run with labelled sample records. Frontend/function deployment and database migrations are separate operations: the target Supabase API did not expose the secure marketplace, fuel or workforce RPCs in the latest read-only check. Real-account workflows need the reviewed migrations; see the [deployment runbook](docs/deployment.md). Demo data stays in the browser, while the authenticated workspace expects shared Supabase records.
+The updated prototype is deployed to [Vercel production](https://rigdesk-marketplace-rig-logi-x.vercel.app/). On 17 October 2026, the existing Supabase project `aejaswaorfmlzagucnvm` was updated in place with account preferences, secure equipment bookings, auctions, reservations, escrow/invoices, fuel vouchers and workforce hiring. No database was moved or reset, and both existing user profiles were preserved. All 32 public tables have row-level security enabled, worker documents use a private bucket, and live API checks confirm account-only functions reject anonymous requests. All 56 automated tests and TypeScript checks pass. Real-account acceptance testing, partner onboarding and payment-provider activation remain separate tasks; see the [deployment runbook](docs/deployment.md). Demo data stays in the browser and is labelled as sample data.
 
 | Area | Current behavior and dependency |
 | --- | --- |
 | Registration and login | Real accounts require successful Supabase authentication and a database profile. SMTP and email-confirmation settings still govern account activation. Open demos remain available without OTP. |
 | Saved activity | Real bookings, inventory, bids, reviews, and account preferences use the database. Booking parties see shared records, with periodic refresh. Fresh accounts do not inherit sample bookings or balances. Demo activity stays in the browser. |
 | Booking security | Server functions calculate prices, check interval capacity and ownership, expire pending reservations, prevent duplicate retry saves and repeated awards, restrict milestones, and require customer-confirmed completion. Work already dispatched uses issue review instead of unilateral cancellation. Direct client financial writes and self-verification are blocked. |
-| Payments | A new transaction-safe B2B funding-reserve service supports verified-balance/card locks, inspection sign-off, commission, queued connected-account transfers, refunds and dispute hooks. Disabled by default; not applied to production. Prototype wallets remain separate. See [payment service documentation](docs/payments.md) for provider setup and limitations. |
+| Payments | The database service for verified-balance/card locks, inspection sign-off, commission, queued connected-account transfers, refunds and dispute hooks is installed. Payment APIs remain disabled until provider credentials and operational checks are completed; no production funds were moved. Prototype wallets remain separate. See [payment service documentation](docs/payments.md) for provider setup and limitations. |
 | Nearby providers | Google Places requires server configuration and authentication. A Maps listing does not confirm machine availability or verify a provider as a RigDesk owner. New authenticated pages currently use registered database inventory. |
 | Recommendations | The Gemini endpoint requires authentication and a server API key. Recommendations do not independently confirm live inventory. Configure quotas and abuse controls before enabling paid external services. |
 | Calling | The interface logs a consented request and can open a configured company number. Automated forwarding and audio recording require telephony integration. |
@@ -333,7 +333,7 @@ The updated prototype was deployed to [Vercel production](https://rigdesk-market
 
 ## 11. Next Product Milestones
 
-1. Apply the tested migration to the live project and validate two real accounts across devices.
+1. Validate customer and owner onboarding and complete cross-device acceptance testing against the updated live database.
 2. Add an administrator verification/dispute interface and shift-level scheduling; reconcile historical multi-day jobs.
 3. Expand translation and mobile acceptance testing with Kannada/Hindi speakers.
 4. Integrate real payment collection and settlement.
@@ -344,4 +344,4 @@ The updated prototype was deployed to [Vercel production](https://rigdesk-market
 
 The new backend layer uses `payment_escrows` linked to bookings, row-locked PostgreSQL functions, the official Stripe SDK, a durable transfer/refund outbox, and deduplicated signed webhook events. Clean post-return inspections require contractor sign-off; funded payouts are queued with a 48-hour deadline and marked released only after matched gateway confirmation. Damage flags freeze funds automatically. Unfunded signed-off jobs can create deferred invoices and vendor factoring requests; financing approval and advances remain a lender integration, not simulated cash.
 
-Apply `supabase/migrations/20261012001100_payment_escrow.sql` only after all earlier required migrations in staging. No production funds have been moved. For endpoint examples, accounting units, provider onboarding, worker scheduling, tests and rollout prerequisites, read [docs/payments.md](docs/payments.md).
+The escrow schema is installed in the existing production database; payment collection and payouts remain disabled. For a new environment, apply `supabase/migrations/20261012001100_payment_escrow.sql` after its prerequisites, and apply `20261017001400_explicit_rpc_permissions.sql` after the feature schemas. No production funds have been moved. For endpoint examples, accounting units, provider onboarding, worker scheduling, tests and rollout prerequisites, read [docs/payments.md](docs/payments.md).

@@ -50,7 +50,12 @@ test('PostgreSQL fuel hub permissions and voucher transaction lifecycle',async t
       CREATE FUNCTION auth.uid() RETURNS uuid LANGUAGE sql STABLE AS $$ SELECT nullif(current_setting('request.jwt.claim.sub',true),'')::uuid $$;
       GRANT USAGE ON SCHEMA auth TO anon,authenticated;`);
     await db.exec(await readFile(new URL('../20260920000100_riglogix_core.sql',import.meta.url),'utf8'));
+    await db.exec('CREATE SCHEMA extensions; ALTER EXTENSION pgcrypto SET SCHEMA extensions;');
+    await db.exec('ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT EXECUTE ON FUNCTIONS TO anon,authenticated; ALTER DEFAULT PRIVILEGES IN SCHEMA app_private GRANT EXECUTE ON FUNCTIONS TO anon,authenticated;');
     await db.exec(await readFile(new URL('../supabase/migrations/20261012001200_fuel_hub.sql',import.meta.url),'utf8'));
+    await db.exec(await readFile(new URL('../supabase/migrations/20261017001400_explicit_rpc_permissions.sql',import.meta.url),'utf8'));
+    const permissions=(await db.query<any>(`SELECT has_function_privilege('anon','fuel_hub_context()','EXECUTE') AS anonymous_context,has_function_privilege('authenticated','app_private.fuel_actor()','EXECUTE') AS direct_helper,has_function_privilege('anon','verify_fuel_voucher(uuid,uuid)','EXECUTE') AS public_qr`)).rows[0];
+    assert.deepEqual(permissions,{anonymous_context:false,direct_helper:false,public_qr:true});
     for(const [id,role] of [[owner,'owner'],[other,'owner'],[customer,'customer'],[staff,'customer'],[outsider,'customer'],[admin,'admin']])await db.query(`INSERT INTO users(id,role,full_name,workspace_name,email) VALUES($1::uuid,$2::user_role,$2::text,$2::text,$1::text||'@test.local')`,[id,role]);
     for(const [id,partner,lat] of [[bunk,true,12.973],[standard,false,12.99],[far,true,13.5]])await db.query(`INSERT INTO fuel_bunks(id,name,brand,address,latitude,longitude,is_partner,discount_per_litre,fuel_types_available) VALUES($1,'Test fuel station','BPCL','Test station address',$2,77.6,$3,CASE WHEN $3 THEN 0.5 ELSE 0 END,ARRAY['diesel','petrol'])`,[id,lat,partner]);
     await db.query(`INSERT INTO fuel_bunk_staff(bunk_id,user_id) VALUES($1,$2)`,[bunk,staff]);
