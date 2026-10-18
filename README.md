@@ -18,6 +18,7 @@ Built for construction, agriculture, borewell drilling, logistics, and infrastru
 
 ### Reliability Update: 18 October 2026
 
+- Refreshed light/dark interface with emerald actions, citrus navigation, colour-coded dashboard metrics and tactile hover/press feedback. Keyboard focus, reduced-motion preferences and printable document layouts are preserved.
 - Workforce hiring includes a job-site map, fresh GPS location, manual pins and private site coordinates. The worker's expected wage stays separate from the employer's offer; either party can accept, decline or counter the latest proposal, with offer history and stale-offer protection.
 - Customer and owner demos include daily/monthly wage negotiation examples. Switch demo profiles to respond as the worker's profile manager or as the employer; demo actions stay local and do not create real employment contracts.
 - Database update 018 adds wage snapshots, negotiation history and site coordinates to existing hiring records without resetting accounts. TypeScript checks, the production build and all 68 automated tests passed for this update.
