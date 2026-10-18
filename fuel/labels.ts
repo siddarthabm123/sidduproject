@@ -1,5 +1,6 @@
 export type FuelLanguage='en'|'hi'|'kn';
 const labels:Record<string,[string,string]>={
+  'Unable to prepare voucher for printing. Please try again.':['वाउचर प्रिंट के लिए तैयार नहीं हुआ। फिर कोशिश करें।','ವೌಚರ್ ಮುದ್ರಿಸಲು ಸಿದ್ಧವಾಗಲಿಲ್ಲ. ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ.'],
   'Fuel hub':['ईंधन केंद्र','ಇಂಧನ ಕೇಂದ್ರ'],
   'Fuel Bunks & Partner Discounts':['पेट्रोल पंप और पार्टनर छूट','ಇಂಧನ ಬಂಕ್‌ಗಳು ಮತ್ತು ಪಾಲುದಾರರ ರಿಯಾಯಿತಿ'],
   'Nearby fuel bunks':['नज़दीकी पेट्रोल पंप','ಹತ್ತಿರದ ಇಂಧನ ಬಂಕ್‌ಗಳು'],

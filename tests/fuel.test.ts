@@ -9,6 +9,17 @@ import { coordinates, distanceKm, effectiveStatus, nearbyBunks, savings, validQu
 import { demoBunks } from '../fuel/demo';
 import { fuelText } from '../fuel/labels';
 
+test('voucher print sheet is portalled outside the hidden dashboard and waits for the QR',async()=>{
+  const css=await readFile(new URL('../fuel.css',import.meta.url),'utf8');
+  const source=await readFile(new URL('../FuelHubPage.tsx',import.meta.url),'utf8');
+  assert.ok(!css.includes('visibility:hidden!important'));
+  assert.ok(css.includes('body:has(>.fuel-print-sheet)>:not(.fuel-print-sheet){display:none!important}'));
+  assert.match(source,/createPortal\(<section ref=\{printSheet\}/);
+  assert.match(source,/<\/section>,document\.body\)/);
+  assert.match(source,/image\?\.decode\(\)/);
+  assert.match(source,/addEventListener\('afterprint',finished\)/);
+});
+
 test('fuel distance, filter, currency and quantity domain rules',()=>{
   assert.equal(coordinates(91,77),false);assert.equal(coordinates(NaN,77),false);assert.equal(coordinates(12,Infinity),false);
   assert.equal(distanceKm(12.97,77.6,12.97,77.6),0);

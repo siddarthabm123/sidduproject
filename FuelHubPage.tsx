@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import type { FormEvent } from 'react';
 import { Fuel, LocateFixed, MapPin, Plus, Printer, RefreshCw, Ticket } from 'lucide-react';
 import QRCode from 'qrcode';
@@ -39,6 +40,18 @@ export default function FuelHubPage({demo,language}:{demo:boolean;language:FuelL
   const [generate,setGenerate]=useState<FuelBunk|null>(null);const [quantity,setQuantity]=useState('100');const [equipment,setEquipment]=useState('');
   const [busy,setBusy]=useState(false);const [formError,setFormError]=useState('');const [gpsBusy,setGpsBusy]=useState(false);
   const [qrImages,setQrImages]=useState<Record<string,string>>({});const [printVoucher,setPrintVoucher]=useState<FuelVoucher|null>(null);
+  const printSheet=useRef<HTMLElement|null>(null);
+  useEffect(()=>{
+    if(!printVoucher)return;
+    let cancelled=false;
+    const finished=()=>setPrintVoucher(null);
+    window.addEventListener('afterprint',finished);
+    const image=printSheet.current?.querySelector('img');
+    void (image?.decode()??Promise.reject(new Error('QR unavailable'))).then(()=>{
+      if(!cancelled)window.print();
+    }).catch(()=>{if(!cancelled){setError('Unable to prepare voucher for printing. Please try again.');setPrintVoucher(null)}});
+    return()=>{cancelled=true;window.removeEventListener('afterprint',finished)};
+  },[printVoucher]);
   const [clock,setClock]=useState(Date.now());const request=useRef<{payload:string;id:string}|null>(null);
   const generating=useRef(false);const mounted=useRef(true);
   useEffect(()=>{mounted.current=true;return()=>{mounted.current=false}},[]);
@@ -115,7 +128,7 @@ export default function FuelHubPage({demo,language}:{demo:boolean;language:FuelL
     if(!navigator.geolocation){failed();return}
     navigator.geolocation.getCurrentPosition(position=>{if(mounted.current){setCenter({id:'gps',label:'GPS',latitude:position.coords.latitude,longitude:position.coords.longitude});setGpsBusy(false);setSelected(null)}},failed,{timeout:12000,maximumAge:60000,enableHighAccuracy:true});
   };
-  const print=(voucher:FuelVoucher)=>{setPrintVoucher(voucher);requestAnimationFrame(()=>requestAnimationFrame(()=>window.print()))};
+  const print=(voucher:FuelVoucher)=>{setPrintVoucher(voucher)};
   return <div className="fuel-hub" data-localized>
     <div className="fuel-page-heading"><div><span className="fuel-eyebrow">RIGDESK / {t('Fuel hub')}</span><h1>{t('Fuel Bunks & Partner Discounts')}</h1></div>
       <button className="fuel-icon" title={t('Refresh')} aria-label={t('Refresh')} onClick={()=>setRefresh(n=>n+1)}><RefreshCw size={19}/></button></div>
@@ -172,9 +185,9 @@ export default function FuelHubPage({demo,language}:{demo:boolean;language:FuelL
       <label className="fuel-check"><input type="checkbox" name="partner" disabled={busy||!context.can_offer_discounts}/>{t('Partner')}</label>
       <label>{t('Discount per litre')}<input type="number" name="rate" defaultValue="1" min="0.01" max="10" step="0.01" disabled={busy||!context.can_offer_discounts}/></label>
       {formError&&<p className="fuel-error" role="alert">{t(formError)}</p>}</div><footer><button type="button" className="fuel-button secondary" onClick={()=>setRegisterPin(null)} disabled={busy}>{t('Cancel')}</button><button className="fuel-button" disabled={busy}><Plus size={17}/>{t(busy?'Saving':'Register')}</button></footer></form></FuelModal>}
-    {printVoucher&&<section className="fuel-print-sheet"><h1>RigDesk</h1><h2>{t('Fuel voucher')}</h2>{printVoucher.demo&&<p>{t('Demo voucher - not valid at a pump')}</p>}
+    {printVoucher&&createPortal(<section ref={printSheet} className="fuel-print-sheet" data-localized><h1>RigDesk</h1><h2>{t('Fuel voucher')}</h2>{printVoucher.demo&&<p>{t('Demo voucher - not valid at a pump')}</p>}
       <img src={qrImages[printVoucher.id]} width="240" height="240" alt={t('Verify voucher')}/><code>{printVoucher.voucher_code}</code><h3>{printVoucher.bunk_name}</h3><p>{printVoucher.bunk_address}</p>
       <p>{t(printVoucher.fuel_type==='DIESEL'?'Diesel':'Petrol')}: {printVoucher.quantity_litres} L</p><p>{t('Save')} {rupees(printVoucher.discount_rate)}/L</p><strong>{t('Estimated savings')}: {rupees(printVoucher.estimated_savings)}</strong><p>{t('Expires')}: {new Date(printVoucher.expires_at).toLocaleString()}</p>
-    </section>}
+    </section>,document.body)}
   </div>;
 }
