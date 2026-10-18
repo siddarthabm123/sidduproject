@@ -43,6 +43,7 @@ test('workforce PostgreSQL profile privacy, review and hiring lifecycle',async t
   await db.exec('ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT EXECUTE ON FUNCTIONS TO anon,authenticated; ALTER DEFAULT PRIVILEGES IN SCHEMA app_private GRANT EXECUTE ON FUNCTIONS TO anon,authenticated;');
   await db.exec(await readFile(new URL('../supabase/migrations/20261012001300_workforce.sql',import.meta.url),'utf8'));
   await db.exec(await readFile(new URL('../supabase/migrations/20261017001400_explicit_rpc_permissions.sql',import.meta.url),'utf8'));
+  await db.exec(await readFile(new URL('../supabase/migrations/20261018001800_worker_wage_negotiation.sql',import.meta.url),'utf8'));
   assert.equal((await db.query<any>(`SELECT has_function_privilege('anon','search_workers(double precision,double precision,integer,text,text,text,text)','EXECUTE') AS allowed`)).rows[0].allowed,false);
   assert.equal((await db.query<any>(`SELECT has_function_privilege('authenticated','app_private.worker_admin()','EXECUTE') AS allowed`)).rows[0].allowed,true);
   for(const [id,role] of [[manager,'owner'],[customer,'customer'],[owner,'owner'],[admin,'admin'],[stranger,'customer']])await db.query(`INSERT INTO users(id,role,full_name,workspace_name,email) VALUES($1::uuid,$2::user_role,$2::text,$2::text,$1::text||'@test.local')`,[id,role]);
@@ -82,7 +83,7 @@ test('workforce PostgreSQL profile privacy, review and hiring lifecycle',async t
    await root();assert.equal((await db.query<any>('SELECT availability_status FROM worker_profiles WHERE id=$1',[worker.id])).rows[0].availability_status,false);
   });
   await t.test('only worker manager accepts; contact opens after acceptance, cancellation restores availability',async()=>{
-   await login(customer);await assert.rejects(db.query(`SELECT respond_worker_hire($1,'accept')`,[hire.id]),/manager/);
+   await login(customer);await assert.rejects(db.query(`SELECT respond_worker_hire($1,'accept')`,[hire.id]),/manager|other party/);
    await login(stranger);await assert.rejects(db.query(`SELECT respond_worker_hire($1,'cancel')`,[hire.id]),/party/);
    await login(manager);const row=(await db.query<any>(`SELECT respond_worker_hire($1,'accept') AS h`,[hire.id])).rows[0].h;assert.equal(row.status,'ACTIVE');
    await login(customer);assert.equal((await db.query<any>('SELECT my_workforce_records() AS r')).rows[0].r.hires[0].phone_number,payload.phone_number);
@@ -91,7 +92,7 @@ test('workforce PostgreSQL profile privacy, review and hiring lifecycle',async t
   });
   await t.test('expired pending requests stop reserving workers and owners can hire too',async()=>{
    await login(customer);const stale=await request();await root();await db.query(`UPDATE worker_hires SET request_expires_at=now()-interval '1 hour' WHERE id=$1`,[stale.id]);
-   await login(manager);await assert.rejects(db.query(`SELECT respond_worker_hire($1,'accept')`,[stale.id]),/active request/);
+   await login(manager);await assert.rejects(db.query(`SELECT respond_worker_hire($1,'accept')`,[stale.id]),/active request|pending request/);
    await login(owner);assert.equal((await search()).length,1);const row=await request();assert.equal(row.employer_type,'OWNER');
   });
   await t.test('same-day Indian time-zone hires work and only employer can complete an ended hire',async()=>{

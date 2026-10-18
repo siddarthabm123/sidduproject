@@ -7,7 +7,7 @@ import { workerText } from './workforce/labels';
 import { documentFileSchema, workerExperienceSchema, workerPersonalSchema, workerProfileSchema } from './workforce/validation';
 import { workerRoles } from './workforce/types';
 import type { WorkerProfile, WorkerRole, WageType, WorkforceRecords } from './workforce/types';
-import { demoProfiles, saveDemoProfile } from './WorkforcePage';
+import { allDemoProfiles, saveDemoProfile } from './WorkforcePage';
 import './workforce.css';
 
 interface Fields {full_name:string;phone_number:string;address:string;public_area:string;worker_role:WorkerRole;latitude:string;longitude:string;experience_years:string;work:string;skills:string;wage_rate:string;wage_type:WageType;license_class:string;availability_status:boolean}
@@ -23,7 +23,7 @@ export default function WorkerProfilePage({demo,role,language}:{demo:boolean;rol
    if(!edit)return;
    const controller=new AbortController();
    const apply=(profile:WorkerProfile)=>{setForm({full_name:profile.full_name,phone_number:profile.phone_number,address:profile.address,public_area:profile.public_area,worker_role:profile.worker_role,latitude:String(profile.latitude),longitude:String(profile.longitude),experience_years:String(profile.experience_years),work:profile.type_of_work.join(', '),skills:profile.skills.join(', '),wage_rate:String(profile.wage_rate),wage_type:profile.wage_type,license_class:profile.license_class||'',availability_status:profile.accepting_requests??profile.availability_status});setGovtPath(profile.govt_id_url);setLicensePath(profile.driving_license_url)};
-   if(demo){const found=demoProfiles().find(p=>p.id===edit&&(p.user_id===`demo-${role}`||p.user_id==='demo-manager'));if(found)apply(found);else setError('Profile not found');setLoading(false);return}
+   if(demo){const found=allDemoProfiles().find(p=>p.id===edit&&(p.user_id===`demo-${role}`||p.user_id==='demo-manager'));if(found)apply(found);else setError('Profile not found');setLoading(false);return}
    workerRequest<{records:WorkforceRecords}>('records',undefined,controller.signal).then(({records})=>{const found=records.profiles.find(p=>p.id===edit);if(!found)throw new Error('Profile not found');apply(found)}).catch(e=>{if(!controller.signal.aborted)setError(e.message)}).finally(()=>{if(!controller.signal.aborted)setLoading(false)});
    return()=>controller.abort();
  },[edit,demo,role]);
