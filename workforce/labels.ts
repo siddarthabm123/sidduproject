@@ -1,5 +1,6 @@
 import type { FuelLanguage } from '../fuel/labels';
 const labels:Record<string,[string,string]>={
+ 'Contact not provided':['संपर्क नंबर उपलब्ध नहीं है','ಸಂಪರ್ಕ ಸಂಖ್ಯೆ ನೀಡಿಲ್ಲ'],
  'Worker expected wage':['कर्मचारी का अपेक्षित वेतन','ಕೆಲಸಗಾರರು ನಿರೀಕ್ಷಿಸುವ ವೇತನ'],
  'Employer original offer':['नियोक्ता का पहला प्रस्ताव','ನೇಮಿಸುವವರ ಮೊದಲ ಪ್ರಸ್ತಾವ'],
  'Your offered wage':['आपका वेतन प्रस्ताव','ನೀವು ನೀಡುವ ವೇತನ'],

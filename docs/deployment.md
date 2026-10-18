@@ -1,5 +1,13 @@
 # Database and Deployment Runbook
 
+## Notifications and Work Records Update
+
+Updates 019 (private notifications, date availability, per-account Places/Gemini quotas) and 020 (private daily work entries and customer review) are installed in the existing Supabase project. Pre/post checks preserved 2 user profiles, 0 bookings and 0 hires; no fictional production work record was inserted. All public tables retain RLS, and anonymous execution of the new work/quotas functions is denied. These checks establish schema and access boundaries, not a completed real customer/owner transaction.
+
+The frontend now uses React localization rather than rewriting DOM text. Native translated option labels preserve canonical values. Notification read state is account-scoped, and URLs point to a booking/hire record; no address, identity document or phone number is embedded in notifications. Read states are synced through Supabase, with a 30-second polling interval while visible. Offline indicators do not claim offline booking confirmation or implement a background submission queue.
+
+Work entries are owner-submitted only for on-site/in-progress bookings and dates within their reservation, bounded to 24 non-rejected hours per date. Reviewed entries cannot be silently changed. Customer approval/rejection does not change payment balances, settle an invoice or automatically complete a booking. Production dependency auditing is included in CI. Use the [release checklist](production-readiness.md) for provider-dependent and operational requirements still outstanding. Older verification counts below are historical, not the current test total.
+
 ## Additive Fixes, 18 October 2026
 
 Updates 015 (per-listing booking quantities), 016 (payment submission/dispute guards) and 017 (separate admin membership and review RPCs) were installed in the existing project through the SQL editor. They preserve existing user roles and records and are recorded in update history. The bond verifier production setting was corrected to the active `rig-logi-x` deployment. Review [admin setup](admin-review.md) and [the payment connection requirement](payments.md) before enabling integrations. Do not reapply installed updates blindly or insert demo seeds into production.

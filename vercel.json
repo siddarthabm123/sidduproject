@@ -3,6 +3,7 @@
   "outputDirectory": "dist/public",
   "framework": "vite",
   "routes": [
+    { "src": "/(.*)", "headers": { "X-Content-Type-Options": "nosniff", "Referrer-Policy": "strict-origin-when-cross-origin", "X-Frame-Options": "DENY", "Permissions-Policy": "camera=(), microphone=(), geolocation=(self)", "Content-Security-Policy": "object-src 'none'; base-uri 'self'; frame-ancestors 'none'" }, "continue": true },
     { "src": "/api/v1/payments/(.*)", "dest": "/api/payments?route=payments/$1" },
     { "src": "/api/v1/inspections/(.*)", "dest": "/api/payments?route=inspections/$1" },
     { "src": "/api/v1/fuel/(.*)", "dest": "/api/fuel?route=$1" },

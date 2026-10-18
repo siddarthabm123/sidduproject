@@ -9,7 +9,7 @@ SELECT jsonb_pretty(jsonb_build_object(
      (table_name = 'equipment' AND column_name = 'available_units'))),
   'public_functions', (SELECT jsonb_agg(p.proname || '(' || pg_get_function_identity_arguments(p.oid) || ')' ORDER BY p.proname)
     FROM pg_proc p JOIN pg_namespace n ON p.pronamespace = n.oid
-    WHERE n.nspname = 'public' AND p.proname IN ('marketplace_equipment', 'request_equipment_booking', 'fuel_hub_context', 'save_worker_profile', 'my_workforce_records')),
+    WHERE n.nspname = 'public' AND p.proname IN ('marketplace_equipment', 'request_equipment_booking', 'fuel_hub_context', 'save_worker_profile', 'my_workforce_records','marketplace_availability','mark_workspace_notifications_read','claim_provider_request','record_booking_work','review_booking_work')),
   'private_schema', to_regnamespace('app_private'),
   'migration_history', to_regclass('supabase_migrations.schema_migrations'),
   'worker_document_bucket', (SELECT jsonb_agg(jsonb_build_object('id', id, 'public', public,

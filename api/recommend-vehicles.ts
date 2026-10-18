@@ -1,4 +1,4 @@
-import { authenticatedDatabase } from '../server-supabase.js';
+import { authenticatedDatabase, ServiceError, serviceStatus } from '../server-supabase.js';
 
 type Candidate = {
   id: string;
@@ -68,7 +68,10 @@ export default async function handler(req: any, res: any) {
   ].join('\n');
 
   try {
-    await authenticatedDatabase(req);
+    const db=await authenticatedDatabase(req);
+    const quota=await db.rpc('claim_provider_request',{p_service:'recommendations'});
+    if(quota.error)throw new ServiceError('Recommendations are temporarily unavailable.',503);
+    if(quota.data!==true)throw new ServiceError('Too many requests. Please retry later.',429,60);
     const response = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models/${process.env.GEMINI_MODEL || 'gemini-2.5-flash'}:generateContent`,
       {
@@ -85,7 +88,7 @@ export default async function handler(req: any, res: any) {
       },
     );
 
-    if (!response.ok) throw new Error(`Gemini request failed with ${response.status}`);
+    if (!response.ok) throw new ServiceError('Recommendations are temporarily unavailable.',response.status===429?429:503,60);
     const payload = await response.json();
     const text = payload?.candidates?.[0]?.content?.parts?.[0]?.text;
     const parsed = JSON.parse(String(text || '{}'));
@@ -100,11 +103,13 @@ export default async function handler(req: any, res: any) {
       recommendations: recommendations.length ? recommendations : fallback,
       message: recommendations.length ? 'Gemini ranked these nearby choices for this booking.' : 'Nearby vehicles are ranked by distance, rating, and verification.',
     });
-  } catch {
-    return res.status(200).json({
+  } catch (error) {
+    if(error instanceof ServiceError&&error.retryAfter)res.setHeader('Retry-After',String(error.retryAfter));
+    return res.status(serviceStatus(error)).json({
       configured: false,
       recommendations: fallback,
       message: 'Gemini is temporarily unavailable, so nearby vehicles are ranked by distance, rating, and verification.',
+      error:error instanceof ServiceError?error.message:'Recommendations are temporarily unavailable.',
     });
   }
 }

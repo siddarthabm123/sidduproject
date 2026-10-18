@@ -1,6 +1,6 @@
 import { timingSafeEqual } from 'node:crypto';
 import { createClient } from '@supabase/supabase-js';
-import { authenticatedDatabase } from '../server-supabase.js';
+import { authenticatedDatabase, ServiceError } from '../server-supabase.js';
 import { configuredGateway } from './gateway.js';
 import { EscrowService, PaymentError, processGatewayEvent, runPaymentWorker } from './service.js';
 import type { PaymentDatabase } from './service.js';
@@ -44,7 +44,7 @@ export function paymentHandler(operation:'lock'|'release'|'refund'|'inspect'|'si
         if(expected.length!==provided.length||!timingSafeEqual(expected,provided))throw new PaymentError('Worker authentication required.',401);
         return res.status(200).json(await runPaymentWorker(transactionalPaymentDatabase(deps.privileged()),deps.gateway()));
       }
-      let database;try{database=await deps.authenticate(req)}catch{throw new PaymentError('Authentication required.',401)}
+      let database;try{database=await deps.authenticate(req)}catch(e){if(e instanceof ServiceError)throw new PaymentError(e.message,e.status);throw new PaymentError('Authentication required.',401)}
       const service=new EscrowService(database,deps.privileged,deps.gateway),body=req.body||{};
       const result=operation==='lock'?await service.lock(body,req.headers['idempotency-key']):operation==='release'?await service.release(body.booking_id):
         operation==='refund'?await service.refund(body.booking_id):operation==='inspect'?await service.inspect(body):operation==='sign-off'?await service.signOff(body.inspection_id):

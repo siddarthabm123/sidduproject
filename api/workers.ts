@@ -1,4 +1,4 @@
-import { authenticatedDatabase } from '../server-supabase.js';
+import { authenticatedDatabase, ServiceError } from '../server-supabase.js';
 import { hireResponseSchema, hireWorkerSchema, workerProfileSchema } from '../workforce/validation.js';
 import { workerRoles, wageTypes } from '../workforce/types.js';
 import { coordinates } from '../fuel/domain.js';
@@ -7,7 +7,7 @@ interface Response{status(n:number):Response;json(v:unknown):unknown;setHeader(k
 const methods:Record<string,string>={profile:'POST',search:'GET',hire:'POST',records:'GET',respond:'POST',review:'POST'};
 export default async function handler(req:Request,res:Response){
  res.setHeader('Cache-Control','no-store');const route=String(req.query.route||'');
- if(!methods[route])return res.status(404).json({error:'Worker endpoint not found'});
+ if(!Object.hasOwn(methods,route))return res.status(404).json({error:'Worker endpoint not found'});
  if(req.method!==methods[route]){res.setHeader('Allow',methods[route]);return res.status(405).json({error:'Method not allowed'})}
  try{
    const db=await authenticatedDatabase(req);let fn='';let args:Record<string,unknown>={};let key='';
@@ -29,6 +29,7 @@ export default async function handler(req:Request,res:Response){
    if(error){if(['42501','28000','22023'].includes(error.code))return res.status(error.code==='42501'?403:error.code==='28000'?401:400).json({error:error.message});if(['23514','23502','22P02'].includes(error.code))return res.status(400).json({error:'Invalid workforce request'});return res.status(503).json({error:'Workforce service is unavailable. Check database setup.'})}
    return res.status(200).json({[key]:data});
  }catch(e){
+   if(e instanceof ServiceError){if(e.retryAfter)res.setHeader('Retry-After',String(e.retryAfter));return res.status(e.status).json({error:e.message})}
    if(e&&typeof e==='object'&&'issues' in e)return res.status(400).json({error:'Invalid workforce request',fields:(e as any).issues.map((i:any)=>({path:i.path.join('.'),message:i.message}))});
    const message=e instanceof Error?e.message:'';const auth=/Authentication required|session has expired/.test(message);
    return res.status(auth?401:message.startsWith('Invalid workforce')?400:503).json({error:auth||message.startsWith('Invalid workforce')?message:'Workforce service is unavailable. Check database setup.'});

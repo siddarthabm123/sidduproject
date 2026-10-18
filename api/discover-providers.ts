@@ -1,4 +1,4 @@
-import { authenticatedDatabase } from '../server-supabase.js';
+import { authenticatedDatabase, ServiceError, serviceStatus } from '../server-supabase.js';
 
 type Provider = {
   id: string;
@@ -27,12 +27,15 @@ export default async function handler(req: any, res: any) {
   const category = String(req.body?.category || 'heavy equipment').replace(/[^a-zA-Z0-9 &-]/g, '').slice(0, 80);
   const latitude = Number(req.body?.latitude);
   const longitude = Number(req.body?.longitude);
-  if (!Number.isFinite(latitude) || !Number.isFinite(longitude) || latitude < -90 || latitude > 90 || longitude < -180 || longitude > 180) {
+  if (req.body?.latitude==null||req.body?.longitude==null||String(req.body.latitude).trim()===''||String(req.body.longitude).trim()===''||!Number.isFinite(latitude) || !Number.isFinite(longitude) || latitude < -90 || latitude > 90 || longitude < -180 || longitude > 180) {
     return res.status(400).json({ error: 'A valid search location is required.' });
   }
 
   try {
-    await authenticatedDatabase(req);
+    const db=await authenticatedDatabase(req);
+    const quota=await db.rpc('claim_provider_request',{p_service:'places'});
+    if(quota.error)throw new ServiceError('Provider discovery is temporarily unavailable.',503);
+    if(quota.data!==true)throw new ServiceError('Too many requests. Please retry later.',429,60);
     const response = await fetch('https://places.googleapis.com/v1/places:searchText', {
       method: 'POST',
       headers: {
@@ -51,7 +54,7 @@ export default async function handler(req: any, res: any) {
       signal: AbortSignal.timeout(10000),
     });
 
-    if (!response.ok) throw new Error(`Places request failed with ${response.status}`);
+    if (!response.ok) throw new ServiceError('Provider discovery is temporarily unavailable.',response.status===429?429:503,60);
     const result = await response.json();
     const providers: Provider[] = (Array.isArray(result.places) ? result.places : [])
       .map((place: any) => ({
@@ -66,11 +69,13 @@ export default async function handler(req: any, res: any) {
 
     res.setHeader('Cache-Control', 'private, max-age=300');
     return res.status(200).json({ configured: true, providers });
-  } catch {
-    return res.status(200).json({
+  } catch (error) {
+    if(error instanceof ServiceError&&error.retryAfter)res.setHeader('Retry-After',String(error.retryAfter));
+    return res.status(serviceStatus(error)).json({
       configured: false,
       providers: [],
       message: 'Provider discovery is temporarily unavailable.',
+      error:error instanceof ServiceError?error.message:'Provider discovery is temporarily unavailable.',
     });
   }
 }

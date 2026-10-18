@@ -79,7 +79,7 @@ Schedule the authenticated worker every minute using your hosting scheduler or a
 
 ## Transaction and State Guarantees
 
-Each Supabase RPC runs as one PostgreSQL transaction: ownership, row locks, balance debit/credit, escrow status, booking status, ledger and outbox writes commit together or roll back together. External provider calls cannot participate in a PostgreSQL transaction; the durable outbox and idempotent provider requests handle that boundary without holding database locks across network calls.
+Each Supabase RPC runs as one PostgreSQL transaction: ownership, row locks, balance debit/credit, escrow status, booking status, ledger and outbox writes commit together or roll back together. External provider calls cannot participate in a PostgreSQL transaction. The durable outbox and stable provider idempotency keys handle uncertain outcomes. The submission guard deliberately holds a booking row lock during the bounded provider request, as described above; a rollback cannot undo an external transfer. Monitor connection/lock duration and reconcile ambiguous outcomes before retrying beyond provider idempotency retention.
 
 The release deadline is sign-off plus **48 calendar hours**, with transfers queued immediately. `HOLDING` remains until a matched successful transfer webhook; the due date is not a guarantee of bank receipt. `RELEASED` means funds reached the connected vendor account, not necessarily its bank account. Refunds stay pending until matched confirmation, except internal verified-balance refunds, which are atomic.
 

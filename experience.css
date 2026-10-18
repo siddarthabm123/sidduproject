@@ -108,6 +108,28 @@
   .fuel-dialog footer { background:var(--rd-soft); }
   .worker-wage-comparison { background:var(--rd-soft); border-radius:6px; padding:16px; }
   @keyframes rd-enter { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:none; } }
+  .notification-trigger { position:relative; display:grid; place-items:center; width:42px; height:42px; border:1px solid var(--rd-line); border-radius:6px; color:var(--rd-muted); }
+  .notification-trigger > span { position:absolute; top:-5px; right:-5px; min-width:18px; height:18px; padding:0 3px; display:grid; place-items:center; background:var(--rd-action); color:var(--rd-action-ink); border-radius:50%; font-size:10px; font-weight:700; }
+  .notification-list { max-height:calc(100dvh - 140px); }
+  .notification-item { width:100%; text-align:left; border:1px solid var(--rd-line); border-radius:6px; padding:14px; color:var(--rd-ink); display:grid; gap:6px; background:var(--rd-surface); }
+  .notification-item.unread { border-left:4px solid var(--rd-action); background:var(--rd-soft); }
+  .notification-item time,.notification-item > span { font-size:12px; color:var(--rd-muted); }
+  .connection-status { position:fixed; bottom:12px; left:12px; right:12px; z-index:1201; display:flex; align-items:center; justify-content:center; gap:10px; padding:12px; border:1px solid #ba7c1d; border-radius:6px; background:#fff3cc; color:#593d08; font-size:14px; }
+  .hiring-estimate { border-left:3px solid var(--rd-action); padding:12px; background:var(--rd-soft); border-radius:4px; }
+  .hiring-estimate strong { display:block; margin-top:6px; color:var(--rd-action); font-variant-numeric:tabular-nums; }
+  .hiring-estimate p { font-size:12px; line-height:1.6; margin-top:8px; }
+  [id^='record-'] { scroll-margin-top:90px; }
+  [id^='record-']:target { outline:3px solid var(--rd-focus); outline-offset:3px; }
+  .job-sheet { margin-top:16px; border-top:1px solid var(--rd-line); padding-top:12px; min-width:0; }
+  .job-sheet p { font-size:13px; line-height:1.65; margin:10px 0; }
+  .work-entry { border-bottom:1px solid var(--rd-line); padding:14px 0; overflow-wrap:anywhere; }
+  .job-sheet label { display:block; font-size:13px; margin-top:10px; }
+  .job-sheet :is(input,textarea) { display:block; width:100%; border:1px solid var(--rd-line); border-radius:4px; padding:9px; margin-top:5px; background:var(--rd-surface); color:var(--rd-ink); }
+  .work-entry-form { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; margin-top:16px; }
+  .work-entry-form label:last-of-type,.work-entry-form > button { grid-column:1/-1; }
+  .demo-job-row { flex-wrap:wrap; }
+  .demo-job-row > .job-sheet { flex-basis:100%; }
+  @media(max-width:640px) { .work-entry-form { grid-template-columns:1fr; } }
   @media (hover:hover) {
     #root .rd-button:hover:not(:disabled),#root .fuel-button:hover:not(:disabled) { transform:translateY(-1px); }
     #root .rd-button:active:not(:disabled),#root .fuel-button:active:not(:disabled) { transform:translateY(1px); box-shadow:none!important; }

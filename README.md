@@ -18,6 +18,13 @@ Built for construction, agriculture, borewell drilling, logistics, and infrastru
 
 ### Reliability Update: 18 October 2026
 
+- Latest verification: **74 automated tests**, TypeScript checking and production build passed; the production pnpm dependency audit reported **zero advisories**. Browser checks covered language/filter switching, notification navigation, local demo work submission/approval and hiring estimates. Real provider delivery and two-account production transactions remain launch gates, not claimed successes.
+- Upgrade release: React-rendered English/Hindi/Kannada text replaces DOM mutation; translated dropdowns keep stable filter values. Equipment search now shares the standard navigation and notification inbox.
+- Private in-app notifications cover new bookings, completion requests, disputes, hiring offers and daily work reviews. Real-account read states are saved in Supabase; demo examples remain local. Notifications are polled, not SMS/email delivery.
+- Date-based equipment capacity is available in real-account search and rechecked transactionally at submission. Booking estimates disclose excluded costs; hiring shows inclusive daily-wage estimates without inventing monthly proration.
+- Owners can submit private daily hours/meter notes for on-site work; customers approve or reject immutable entries. Work records do not release funds or prove payment. Both demo roles have labelled work-record examples.
+- Authentication outages no longer masquerade as expired sessions. Paid provider discovery has per-account database quotas, truthful failure codes and retry headers. Offline notices and basic response-security headers are included.
+- Updates 019-020 were installed in the existing Supabase project without account resets or fictional production transactions. See [release scope and remaining launch gates](docs/production-readiness.md) before using real money, documents or telephony.
 - Refreshed light/dark interface with emerald actions, citrus navigation, colour-coded dashboard metrics and tactile hover/press feedback. Keyboard focus, reduced-motion preferences and printable document layouts are preserved.
 - Workforce hiring includes a job-site map, fresh GPS location, manual pins and private site coordinates. The worker's expected wage stays separate from the employer's offer; either party can accept, decline or counter the latest proposal, with offer history and stale-offer protection.
 - Customer and owner demos include daily/monthly wage negotiation examples. Switch demo profiles to respond as the worker's profile manager or as the employer; demo actions stay local and do not create real employment contracts.

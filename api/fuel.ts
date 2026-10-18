@@ -1,4 +1,4 @@
-import { authenticatedDatabase, serverDatabase } from '../server-supabase.js';
+import { authenticatedDatabase, serverDatabase, ServiceError } from '../server-supabase.js';
 import { coordinates, radii, validQuantity } from '../fuel/domain.js';
 
 interface Request { method?: string; headers: Record<string,unknown>; query: Record<string,unknown>; body?: unknown }
@@ -9,7 +9,7 @@ const invalid=()=>{throw new Error('Invalid fuel request')};
 export default async function handler(req: Request,res: Response) {
   res.setHeader('Cache-Control','no-store');
   const route=String(req.query.route||'');const method=methods[route];
-  if(!method)return res.status(404).json({error:'Fuel endpoint not found'});
+  if(!Object.hasOwn(methods,route))return res.status(404).json({error:'Fuel endpoint not found'});
   if(req.method!==method){res.setHeader('Allow',method);return res.status(405).json({error:'Method not allowed'})}
   try {
     const db=route==='vouchers/verify'?serverDatabase():await authenticatedDatabase(req);
@@ -58,6 +58,7 @@ export default async function handler(req: Request,res: Response) {
     if(data?.error)return res.status(409).json(data);
     return res.status(200).json({[key]:data});
   }catch(error){
+    if(error instanceof ServiceError){if(error.retryAfter)res.setHeader('Retry-After',String(error.retryAfter));return res.status(error.status).json({error:error.message})}
     const message=error instanceof Error?error.message:'';
     const auth=/Authentication required|session has expired/.test(message);
     return res.status(auth?401:message==='Invalid fuel request'?400:503).json({error:auth?message:message==='Invalid fuel request'?message:'Fuel service is unavailable. Please retry later.'});

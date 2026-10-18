@@ -9,6 +9,7 @@ import { demoNegotiations, demoWorkers } from './workforce/demo';
 import WorkerSiteMap from './WorkerSiteMap';
 import type { SitePoint } from './WorkerSiteMap';
 import WorkerHireCard from './WorkerHireCard';
+import HiringEstimate from './HiringEstimate';
 import { respondDemoHire } from './workforce/negotiation';
 import { workerText } from './workforce/labels';
 import { hireWorkerSchema } from './workforce/validation';
@@ -32,6 +33,7 @@ export default function WorkforcePage({role,demo,language}:{role:'customer'|'own
  const [start,setStart]=useState(localDate()),[end,setEnd]=useState(localDate()),[rate,setRate]=useState(''),[site,setSite]=useState(''),[machine,setMachine]=useState('');
  const request=useRef<{payload:string;id:string}|null>(null),pending=useRef(false);
  const [sitePoint,setSitePoint]=useState<SitePoint|null>(null),[siteLocating,setSiteLocating]=useState(false);
+ useEffect(()=>{const id=window.location.hash.slice(1);if(/^record-[0-9a-f-]{36}$/i.test(id))document.getElementById(id)?.scrollIntoView({block:'center'})},[records]);
  useEffect(()=>{
    const timer=setInterval(()=>setRefresh(n=>n+1),30000);
    const visible=()=>{if(document.visibilityState==='visible')setRefresh(n=>n+1)};
@@ -95,7 +97,7 @@ export default function WorkforcePage({role,demo,language}:{role:'customer'|'own
    {worker&&<FuelModal title={t('Assign / Hire Worker')} busy={busy} onClose={()=>setWorker(null)}><form onSubmit={hire}><div className="fuel-dialog-body"><strong>{worker.full_name} · {t(worker.worker_role)}</strong><span className={`worker-verification ${worker.is_verified?'verified':'unverified'}`}>{t(worker.is_verified?'Verified Profile':'Unverified Profile')}</span>
      <div className="fuel-form-grid"><label>{t('Start date')}<input type="date" value={start} min={localDate()} required onChange={e=>setStart(e.target.value)} disabled={busy}/></label><label>{t('End date (inclusive)')}<input type="date" value={end} min={start} required onChange={e=>setEnd(e.target.value)} disabled={busy}/></label></div>
      <div className="worker-expected-wage"><span>{t('Worker expected wage')}</span><strong>{rupees(worker.wage_rate)} / {t(worker.wage_type==='DAILY_WAGE'?'Day':'Month')}</strong></div><label>{t('Your offered wage')} / {t(worker.wage_type==='DAILY_WAGE'?'Day':'Month')}<input type="number" value={rate} min="1" max="1000000" step="0.01" required onChange={e=>setRate(e.target.value)} disabled={busy}/></label>
-     <WorkerSiteMap value={sitePoint} center={{latitude:Number.isFinite(Number(lat))&&Math.abs(Number(lat))<=90?Number(lat):12.97,longitude:Number.isFinite(Number(lng))&&Math.abs(Number(lng))<=180?Number(lng):77.6}} language={language} onChange={setSitePoint} onLocatingChange={setSiteLocating} disabled={busy}/><label>{t('Site location')}<textarea value={site} minLength={5} maxLength={500} required onChange={e=>setSite(e.target.value)} disabled={busy}/></label><label>{t('Machine pairing (optional)')}<input value={machine} maxLength={200} onChange={e=>setMachine(e.target.value)} disabled={busy}/></label><p>{t('Contact available after acceptance')}</p>{formError&&<p className="fuel-error" role="alert">{t(formError)}</p>}
+     <HiringEstimate start={start} end={end} rate={Number(rate)} wageType={worker.wage_type}/><WorkerSiteMap value={sitePoint} center={{latitude:Number.isFinite(Number(lat))&&Math.abs(Number(lat))<=90?Number(lat):12.97,longitude:Number.isFinite(Number(lng))&&Math.abs(Number(lng))<=180?Number(lng):77.6}} language={language} onChange={setSitePoint} onLocatingChange={setSiteLocating} disabled={busy}/><label>{t('Site location')}<textarea value={site} minLength={5} maxLength={500} required onChange={e=>setSite(e.target.value)} disabled={busy}/></label><label>{t('Machine pairing (optional)')}<input value={machine} maxLength={200} onChange={e=>setMachine(e.target.value)} disabled={busy}/></label><p>{t('Contact available after acceptance')}</p>{formError&&<p className="fuel-error" role="alert">{t(formError)}</p>}
    </div><footer><button type="button" className="fuel-button secondary" disabled={busy} onClick={()=>setWorker(null)}>{t('Cancel')}</button><button className="fuel-button" disabled={busy||siteLocating}><Check size={16}/>{t('Submit hire request')}</button></footer></form></FuelModal>}
  </div>;
 }
