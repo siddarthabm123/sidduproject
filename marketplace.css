@@ -1,4 +1,8 @@
 .real-marketplace { color:var(--market-text,#18303a); }
+.equipment-map { width:100%; height:420px; position:relative; z-index:0; margin-bottom:24px; }
+.admin-workspace { max-width:1200px; margin:auto; padding:24px; min-height:100dvh; background:var(--market-panel,#fbf9f2); }
+.real-marketplace input[type=checkbox] { width:20px; height:20px; }
+@media(max-width:600px) { .equipment-map { height:300px; } }
 .real-marketplace h1 { font-size:28px; font-weight:700; }
 .real-marketplace h2 { font-size:18px; font-weight:700; margin:16px 0 8px; }
 .market-heading,.market-toolbar,.market-actions,.market-row { display:flex; flex-wrap:wrap; gap:16px; align-items:center; justify-content:space-between; }

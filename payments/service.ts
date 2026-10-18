@@ -7,6 +7,7 @@ export type PaymentEscrow = {
 };
 export interface PaymentDatabase {
   rpc(name:string,args:Record<string,unknown>):PromiseLike<{data:any;error:unknown}>;
+  withSubmissionLock?<T>(job:PaymentJob,action:(database:PaymentDatabase)=>Promise<T>):Promise<T>;
 }
 export class PaymentError extends Error {
   constructor(message:string,readonly status=409){super(message)}
@@ -79,16 +80,19 @@ export async function processGatewayEvent(event:GatewayEvent,gateway:PaymentGate
 }
 
 export async function runPaymentWorker(database:PaymentDatabase,gateway:PaymentGateway) {
+  if(!database.withSubmissionLock)throw new PaymentError('Transactional payment submission is not configured. No funds have been moved.',503);
   const jobs:PaymentJob[]=await rpc(database,'claim_payment_jobs',{p_limit:10});
   let submitted=0,failed=0,blocked=0;
   for(const job of jobs) {
-    if(!await rpc(database,'validate_payment_job',{p_job:job.id,p_lease:job.lease_token})){blocked++;continue;}
-    try {
-      const reference=await gateway.submitJob(job);
-      await rpc(database,'finish_payment_job',{p_job:job.id,p_lease:job.lease_token,p_reference:reference,p_error:null});submitted++;
-    } catch {
-      await rpc(database,'finish_payment_job',{p_job:job.id,p_lease:job.lease_token,p_reference:null,p_error:'Provider submission failed; reconcile and retry with the same job ID.'});failed++;
-    }
+    await database.withSubmissionLock(job,async locked=>{
+      if(!await rpc(locked,'validate_payment_job',{p_job:job.id,p_lease:job.lease_token})){blocked++;return;}
+      try {
+        const reference=await gateway.submitJob(job);
+        await rpc(locked,'finish_payment_job',{p_job:job.id,p_lease:job.lease_token,p_reference:reference,p_error:null});submitted++;
+      } catch {
+        await rpc(locked,'finish_payment_job',{p_job:job.id,p_lease:job.lease_token,p_reference:null,p_error:'Provider submission uncertain; reconcile using the same job ID.'});failed++;
+      }
+    });
   }
   return {submitted,failed,blocked};
 }

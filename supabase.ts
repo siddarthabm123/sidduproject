@@ -15,6 +15,13 @@ export const supabase = isSupabaseConfigured
     })
   : null;
 
+let recoverySession=false;
+supabase?.auth.onAuthStateChange((event)=>{
+  if(event==='PASSWORD_RECOVERY')recoverySession=true;
+  if(event==='SIGNED_OUT')recoverySession=false;
+});
+export const hasRecoverySession=()=>recoverySession;
+
 export function supabaseConnectionLabel() {
   return isSupabaseConfigured ? 'Supabase configured' : 'Demo mode (not connected)';
 }

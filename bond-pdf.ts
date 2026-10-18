@@ -37,7 +37,7 @@ export default async function handler(req:any,res:any) {
     }
     if(!process.env.BOND_PDF_SECRET?.trim())return res.status(503).json({error:'Bond signing is not configured.'});
     const token=signBond(bond);
-    const base=process.env.BOND_VERIFY_BASE_URL||'https://rigdesk-marketplace-rig-desk.vercel.app/verify/';
+    const base=process.env.BOND_VERIFY_BASE_URL||'https://rigdesk-marketplace-rig-logi-x.vercel.app/verify/';
     const url=`${base.replace(/\/$/,'')}/${encodeURIComponent(bond.bookingId)}?token=${encodeURIComponent(token)}`;
     const qr=await QRCode.toDataURL(url,{errorCorrectionLevel:'M',margin:4,width:640});
     const digest=createHash('sha256').update(token).digest('hex').toUpperCase();

@@ -1,0 +1,14 @@
+import assert from 'node:assert/strict';
+import { createRequire } from 'node:module';
+import { resolve } from 'node:path';
+import jsQR from 'jsqr';
+const modules=process.env.RIGDESK_QA_IMAGE_MODULES;
+if(!modules)throw new Error('Set RIGDESK_QA_IMAGE_MODULES to a QA runtime containing sharp.');
+const sharp=createRequire(resolve(modules,'../package.json'))('sharp');
+const {data,info}=await sharp('tmp/pdfs/rigdesk-live-bond.png').ensureAlpha().raw().toBuffer({resolveWithObject:true});
+const decoded=jsQR(new Uint8ClampedArray(data),info.width,info.height);assert.ok(decoded,'QR must decode from rendered PDF');
+const url=new URL(decoded.data),base=process.env.RIGDESK_URL||'https://rigdesk-marketplace-rig-logi-x.vercel.app';
+assert.equal(url.origin,base);assert.equal(url.pathname,'/verify/RD-LIVE-QR-QA');
+const result=await fetch(`${base}/api/verify-bond?reference=RD-LIVE-QR-QA&token=${encodeURIComponent(url.searchParams.get('token')||'')}`);
+assert.equal(result.status,200);const body=await result.json();assert.equal(body.demo,true);assert.equal(body.verified,false);
+console.log('Rendered QR decodes to the active website; verifier correctly labels the record as demo, not authentic.');

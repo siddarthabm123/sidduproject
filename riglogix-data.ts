@@ -33,6 +33,9 @@ export type EmailOtpProfile = {
   phone?: string;
   serviceArea?: string;
   aadhaarLast4: string;
+  address?: string;
+  upiId?: string;
+  bankName?: string;
 };
 
 export type BookingInsert = {
@@ -91,6 +94,12 @@ export async function loadCurrentAppState() {
   return { data: (result.data?.state ?? {}) as Record<string, unknown>, error: result.error };
 }
 
+export async function getCurrentAdminAccess() {
+  if(!supabase)return false;
+  const result=await supabase.rpc('admin_access');
+  return !result.error&&result.data===true;
+}
+
 export async function initializeCurrentAppState() {
   if (!supabase) return { data: null, error: null };
   const { data: sessionData, error: sessionError } = await supabase.auth.getUser();
@@ -142,6 +151,9 @@ export async function sendEmailSignupOtp(profile: EmailOtpProfile) {
         phone: profile.phone,
         service_area: profile.serviceArea,
         aadhaar_last4: profile.aadhaarLast4,
+        address: profile.address,
+        upi_id: profile.upiId,
+        bank_name: profile.bankName,
       },
     },
   });

@@ -5,6 +5,7 @@ import { configuredGateway } from './gateway.js';
 import { EscrowService, PaymentError, processGatewayEvent, runPaymentWorker } from './service.js';
 import type { PaymentDatabase } from './service.js';
 import type { PaymentGateway } from './gateway.js';
+import { transactionalPaymentDatabase } from './transaction.js';
 
 type Request = {method?:string;headers:Record<string,unknown>;body?:any;rawBody?:Buffer;[Symbol.asyncIterator]?:()=>AsyncIterator<Buffer>};
 type Response = {setHeader(name:string,value:string):void;status(code:number):Response;json(value:unknown):unknown};
@@ -41,7 +42,7 @@ export function paymentHandler(operation:'lock'|'release'|'refund'|'inspect'|'si
         if(secret.length<32)throw new PaymentError('Payment worker authentication is not configured.',503);
         const expected=Buffer.from(`Bearer ${secret}`),provided=Buffer.from(actual);
         if(expected.length!==provided.length||!timingSafeEqual(expected,provided))throw new PaymentError('Worker authentication required.',401);
-        return res.status(200).json(await runPaymentWorker(deps.privileged(),deps.gateway()));
+        return res.status(200).json(await runPaymentWorker(transactionalPaymentDatabase(deps.privileged()),deps.gateway()));
       }
       let database;try{database=await deps.authenticate(req)}catch{throw new PaymentError('Authentication required.',401)}
       const service=new EscrowService(database,deps.privileged,deps.gateway),body=req.body||{};

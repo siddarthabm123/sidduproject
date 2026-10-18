@@ -16,7 +16,7 @@ async function fixture() {
     CREATE TABLE auth.users(id uuid PRIMARY KEY,email text,raw_user_meta_data jsonb DEFAULT '{}');
     CREATE FUNCTION auth.uid() RETURNS uuid LANGUAGE sql STABLE AS $$ SELECT nullif(current_setting('request.jwt.claim.sub',true),'')::uuid $$;
     GRANT USAGE ON SCHEMA auth TO anon,authenticated;`);
-  for(const file of ['20260920000100_riglogix_core.sql','20260920000200_riglogix_rls.sql','20260920000400_auth_wallet_booking_workflows.sql','20260920000500_lock_direct_financial_updates.sql','supabase/migrations/20260926000700_aadhaar_email_verification.sql','supabase/migrations/20260927000800_user_app_state.sql','supabase/migrations/20261008000900_secure_marketplace.sql','supabase/migrations/20261010001000_marketplace_reservations.sql','supabase/migrations/20261017001400_explicit_rpc_permissions.sql']) {
+  for(const file of ['20260920000100_riglogix_core.sql','20260920000200_riglogix_rls.sql','20260920000400_auth_wallet_booking_workflows.sql','20260920000500_lock_direct_financial_updates.sql','supabase/migrations/20260926000700_aadhaar_email_verification.sql','supabase/migrations/20260927000800_user_app_state.sql','supabase/migrations/20261008000900_secure_marketplace.sql','supabase/migrations/20261010001000_marketplace_reservations.sql','supabase/migrations/20261017001400_explicit_rpc_permissions.sql','supabase/migrations/20261017001500_booking_quantities.sql']) {
     await db.exec(await readFile(new URL(`../${file}`,import.meta.url),'utf8'));
   }
   for(const [id,role] of [[customer,'customer'],[owner,'owner'],[other,'customer']]) {
@@ -115,6 +115,20 @@ test('remaining marketplace database findings have regression coverage',async t=
       await assert.rejects(f.request(id,1,9,1,key),/different booking details/);
       await f.login(other);const own=await f.request(id,1,8,1,key);assert.notEqual(own.id,first.id);
       await assert.rejects(f.request(id,1,8,1.5),/whole numbers/);
+    });
+    await t.test('mixed billing units have separate quantities; invalid items roll back the batch',async()=>{
+      const hourly=await f.machine(3),distance=await f.machine(3);
+      await f.admin();await f.db.query("UPDATE equipment SET pricing_unit='km',base_rate_paise=5000 WHERE id=$1",[distance]);
+      await f.login(customer);
+      const items=[{equipment_id:hourly,units:2,quantity:8},{equipment_id:distance,units:1,quantity:120}];
+      const result=(await f.db.query<any>(`SELECT request_equipment_booking($1,current_date+10,'Test site address',12.97,77.6,1,'',$2) AS jobs`,[items,randomUUID()])).rows[0].jobs;
+      assert.equal(result.find((j:any)=>j.equipment_id===hourly).quantity,8);
+      assert.equal(result.find((j:any)=>j.equipment_id===hourly).total_cost_paise,165600);
+      assert.equal(result.find((j:any)=>j.equipment_id===distance).quantity,120);
+      assert.equal(result.find((j:any)=>j.equipment_id===distance).total_cost_paise,621000);
+      const before=(await f.db.query<any>('SELECT count(*)::int AS n FROM bookings')).rows[0].n;
+      await assert.rejects(f.db.query(`SELECT request_equipment_booking($1,current_date+20,'Test site address',12.97,77.6,1,'')`,[[{equipment_id:hourly,units:1,quantity:8},{equipment_id:distance,units:1,quantity:-1}]]),/Invalid equipment quantity/);
+      assert.equal((await f.db.query<any>('SELECT count(*)::int AS n FROM bookings')).rows[0].n,before);
     });
   } finally { await f.db.close(); }
 });

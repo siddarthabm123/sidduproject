@@ -12,6 +12,11 @@ import type { PaymentDatabase } from '../payments/service';
 import { paymentHandler } from '../payments/http';
 
 const contractor='10000000-0000-0000-0000-000000000001',vendor='20000000-0000-0000-0000-000000000001',other='10000000-0000-0000-0000-000000000002';
+test('payment worker refuses a database without a submission lock',async()=>{
+  let calls=0;
+  await assert.rejects(runPaymentWorker({rpc:async()=>{calls++;return {data:[],error:null}}},new MockGateway()),/Transactional payment submission/);
+  assert.equal(calls,0);
+});
 class MockGateway implements PaymentGateway {
   intents=new Map<string,CapturedIntent>();submissions=new Map<string,string>();calls:string[]=[];failAfterTransfer=false;
   async retrieveIntent(id:string){const value=this.intents.get(id);if(!value)throw new Error('Intent not found');return value}
@@ -44,6 +49,8 @@ async function fixture() {
     }catch(error){return {data:null,error}}
   }});
   const privileged=adapter('','service_role'),gateway=new MockGateway();
+  await db.exec(await readFile(new URL('../supabase/migrations/20261017001600_payment_submission_guard.sql',import.meta.url),'utf8'));
+  privileged.withSubmissionLock=async(_job,action)=>{await db.exec('BEGIN');try{const result=await action(privileged);await db.exec('COMMIT');return result}catch(error){await db.exec('ROLLBACK');throw error}};
   const service=(actor=contractor)=>new EscrowService(adapter(actor),()=>privileged,()=>gateway);
   const booking=async()=>{
     await admin();const machine=randomUUID();await db.query(`INSERT INTO equipment(id,owner_id,title,sector,category,pricing_unit,base_rate_paise,telematics_id,is_verified) VALUES($1,$2,'Excavator','Construction','Excavator','hour',10000,$3,true)`,[machine,vendor,machine]);
@@ -114,7 +121,7 @@ test('transactional escrow, inspection, webhook and factoring integration',async
       assert.equal(Date.parse(escrow.payout_due_date)-Date.parse(escrow.release_requested_at),48*3600000);
       assert.equal((await f.read(`SELECT count(*)::integer AS count FROM payment_jobs WHERE escrow_id=$1 AND kind='PAYOUT'`,[escrow.id]))[0].count,1);
       f.gateway.failAfterTransfer=true;let result=await runPaymentWorker(f.privileged,f.gateway);assert.ok(result.failed>=1);
-      await f.admin();await f.db.exec(`UPDATE payment_jobs SET available_at=now() WHERE status='PENDING'`);
+      await f.admin();await f.db.exec(`UPDATE payment_jobs SET available_at=now(),lease_until=now()-interval '1 minute' WHERE status IN('PENDING','PROCESSING')`);
       result=await runPaymentWorker(f.privileged,f.gateway);assert.ok(result.submitted>=1);
       const payout=(await f.read(`SELECT * FROM payment_jobs WHERE escrow_id=$1 AND kind='PAYOUT'`,[escrow.id]))[0];
       const event={id:'evt_vendor_transfer',type:'transfer.created',object:{id:payout.provider_reference,amount:payout.amount,currency:'inr',destination:'acct_vendor',metadata:{rigdesk_job_id:payout.id}}};
@@ -134,6 +141,17 @@ test('transactional escrow, inspection, webhook and factoring integration',async
       await f.db.query('SELECT report_booking_issue($1,$2)',[another.id,'Operator did not finish the scope']);
       assert.equal((await f.read('SELECT status FROM payment_escrows WHERE id=$1',[anotherEscrow.id]))[0].status,'DISPUTED');
       await assert.rejects(f.service().signOff(clean.id));
+    });
+    await t.test('a dispute committed after claim blocks submission and preserves reconciliation',async()=>{
+      const job=await f.booking();const escrow=await f.service().lock({booking_id:job.id,source:'balance'},randomUUID());
+      const log=await f.inspection(job.id);await f.service().signOff(log.id);
+      const claimed=await f.privileged.rpc('claim_payment_jobs',{p_limit:10});
+      const payout=claimed.data.find((j:any)=>j.escrow_id===escrow.id);assert.ok(payout);
+      await f.login(contractor);await f.db.query(`SELECT report_booking_issue($1,'Customer disputes completed scope')`,[job.id]);
+      const valid=await f.privileged.rpc('validate_payment_job',{p_job:payout.id,p_lease:payout.lease_token});assert.equal(valid.data,false);
+      const record=(await f.read('SELECT * FROM payment_jobs WHERE id=$1',[payout.id]))[0];
+      assert.equal(record.reconciliation_required,true);assert.equal(record.status,'PROCESSING');
+      const before=f.gateway.calls.length;await runPaymentWorker(f.privileged,f.gateway);assert.equal(f.gateway.calls.length,before);
     });
     await t.test('pre-dispatch refunds are idempotent and card refunds wait for gateway confirmation',async()=>{
       const job=await f.booking(),key=randomUUID();await f.service().lock({booking_id:job.id,source:'balance'},key);

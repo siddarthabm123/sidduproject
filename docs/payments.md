@@ -58,9 +58,18 @@ SUPABASE_SERVICE_ROLE_KEY=<server-only-key>
 STRIPE_SECRET_KEY=<test-secret-key>
 STRIPE_WEBHOOK_SECRET=<endpoint-signing-secret>
 PAYMENT_WORKER_SECRET=<random-secret-at-least-32-characters>
+PAYMENT_DATABASE_URL=<server-only-postgresql-or-supavisor-connection-url>
 ```
 
 Use trusted onboarding to provision `payment_accounts.customer_reference` for contractors and `vendor_destination` / `payout_enabled` for verified vendors. This module deliberately does not let users self-approve payout accounts.
+
+### Submission and Dispute Serialization
+
+Apply update `20261017001600_payment_submission_guard.sql` before running the updated worker. The worker refuses to claim jobs without the transactional adapter. `PAYMENT_DATABASE_URL` must use a trusted, TLS-validating PostgreSQL connection, never a browser variable. A dedicated connection holds `bookings FOR UPDATE` from validation through provider submission and the result write. Dispute and inspection writers take the same booking lock. A dispute committed first blocks transfer; an already submitted provider request cannot be undone by a database rollback and must be reconciled.
+
+Uncertain responses remain `PROCESSING` until the lease expires, with `reconciliation_required=true`; retries reuse the same provider idempotency key. Disputed in-flight/submitted transfers are never falsely marked cancelled. Their webhooks can still reconcile actual movement while the escrow stays disputed. Old ambiguous operations beyond provider idempotency retention require manual reconciliation. A generic admin button cannot release funded disputes. Automated transfer reversal and provider-side dispute settlement are not implemented.
+
+Tests cover database invariants and mocked gateway events/interleavings. Before enabling real payments, run independent-connection contention tests against staging PostgreSQL and verify webhook delivery, connection loss and provider timeouts. A 48-hour due date is a scheduling target, not a bank-settlement guarantee.
 
 An existing server checkout must create platform PaymentIntents with the server-calculated amount, `inr` currency, and the registered Stripe customer. For escrow, immutable checkout metadata must include `purpose=escrow`, `contractor_id`, `booking_id`, and UUID `request_id` matching the lock request header. For verified balance top-ups, use `purpose=balance` and `contractor_id`. This service validates existing captured PaymentIntents; creating a checkout, handling card details and vendor KYC UI are not implemented here. A `requires_capture` authorization alone is not treated as locked money.
 

@@ -16,6 +16,19 @@ Built for construction, agriculture, borewell drilling, logistics, and infrastru
 
 **Strategy and rollout:** [Business Model Canvas](docs/business-model-canvas.md) | [Database and deployment runbook](docs/deployment.md)
 
+### Reliability Update: 18 October 2026
+
+- Mixed bookings specify a separate billable quantity for each equipment listing, with server-side pricing, availability checks and atomic rollback.
+- Account language/theme restore from Supabase; an explicit choice on the entry screen takes precedence.
+- Real-account radar displays stored equipment coordinates with GPS-centred radius filtering, not live telematics.
+- [Admin review](https://rigdesk-marketplace-rig-logi-x.vercel.app/admin) supports equipment approval, private worker-document review, unfunded dispute resolution and fuel-partner permissions. Separate admin membership preserves the customer's account role.
+- Bond QR codes use the active deployment's verifier. Download a fresh copy to replace documents containing an old website URL.
+- Optional email OTP uses actual Supabase verification, password recovery has a dedicated page, and unconfigured SMS login is disabled. Email delivery is not simulated.
+- Payment submission requires a server-only PostgreSQL connection and holds the booking lock during provider submission. Uncertain responses and in-flight disputes require reconciliation. Payments remain disabled pending provider onboarding and staging validation.
+- Database changes 015-017 are additive: no account reset or demo data inserted. The production dependency audit reported zero advisories on this date.
+
+See [administrator access and authentication setup](docs/admin-review.md) and [payment deployment requirements](docs/payments.md).
+
 ![Machinery featured in the RigDesk prototype](public/assets/hero-machinery.jpg)
 
 ## 1. Live Website and Demo Access

@@ -155,7 +155,7 @@ const additionalText:Record<string,Pair> = {
 
 export function interfaceText(source:string,language:'en'|'hi'|'kn'):string|undefined {
   if(language==='en')return source;
-  const pair=additionalText[source] || liveTranslations[source] || text[source];
+  const pair=reviewText[source] || additionalText[source] || liveTranslations[source] || text[source];
   if(pair)return pair[language==='kn'?1:0];
   const numberError=source.match(/^(.+) must be a positive number no greater than ([\d.]+)\.$/);
   if(numberError) {
@@ -164,3 +164,54 @@ export function interfaceText(source:string,language:'en'|'hi'|'kn'):string|unde
   }
   return undefined;
 }
+
+const reviewText:Record<string,Pair>={
+  'current inventory':['मौजूदा मशीन सूची','ಈಗಿನ ಯಂತ್ರಗಳ ಪಟ್ಟಿ'],
+  'Tell Northline how the job went':['Northline को काम का अनुभव बताएँ','ಕೆಲಸದ ಅನುಭವವನ್ನು Northline ಅವರಿಗೆ ತಿಳಿಸಿ'],
+  'Resend code':['कोड फिर भेजें','ಕೋಡ್ ಮತ್ತೆ ಕಳುಹಿಸಿ'],
+  'Account':['खाता','ಖಾತೆ'],
+  'Funded dispute requires payment-provider reconciliation; no funds have been released':['इस शिकायत का भुगतान प्रदाता से मिलान जरूरी है; कोई रकम जारी नहीं की गई','ಈ ದೂರಿನ ಹಣವನ್ನು ಪಾವತಿ ಸಂಸ್ಥೆಯೊಂದಿಗೆ ಪರಿಶೀಲಿಸಬೇಕು; ಹಣ ಬಿಡುಗಡೆ ಮಾಡಿಲ್ಲ'],
+  'Authentication required':['लॉगिन करना जरूरी है','ಲಾಗಿನ್ ಮಾಡಬೇಕು'],
+  'Only preferences can be saved as app state':['यहाँ केवल भाषा और थीम सहेज सकते हैं','ಇಲ್ಲಿ ಭಾಷೆ ಮತ್ತು ಥೀಮ್ ಮಾತ್ರ ಉಳಿಸಬಹುದು'],
+  'Invalid preference':['भाषा या थीम सही नहीं है','ಭಾಷೆ ಅಥವಾ ಥೀಮ್ ಸರಿಯಾಗಿಲ್ಲ'],
+  'Assigned owner required':['इस बुकिंग का मशीन मालिक ही यह कर सकता है','ಈ ಬುಕಿಂಗ್‌ನ ಮಾಲೀಕರು ಮಾತ್ರ ಇದನ್ನು ಮಾಡಬಹುದು'],
+  'No further owner milestone is available':['मालिक के लिए अगला चरण नहीं है','ಮಾಲೀಕರಿಗೆ ಮುಂದಿನ ಹಂತ ಇಲ್ಲ'],
+  'Review requires your completed booking, a rating and a comment':['पूरी हुई अपनी बुकिंग, रेटिंग और टिप्पणी जरूरी हैं','ನಿಮ್ಮ ಪೂರ್ಣಗೊಂಡ ಬುಕಿಂಗ್, ರೇಟಿಂಗ್ ಮತ್ತು ಅಭಿಪ್ರಾಯ ಬೇಕು'],
+  'An accepted booking belonging to this account is required':['इस खाते की स्वीकार की गई बुकिंग जरूरी है','ಈ ಖಾತೆಯ ಒಪ್ಪಿಕೊಂಡ ಬುಕಿಂಗ್ ಬೇಕು'],
+  'Invalid equipment quantity':['मशीन के काम की मात्रा सही नहीं है','ಯಂತ್ರದ ಕೆಲಸದ ಪ್ರಮಾಣ ಸರಿಯಾಗಿಲ್ಲ'],
+  'This booking already has an open issue':['इस बुकिंग की शिकायत पहले से खुली है','ಈ ಬುಕಿಂಗ್‌ನ ದೂರು ಈಗಾಗಲೇ ತೆರೆದಿದೆ'],
+  'Last updated':['आखिरी बदलाव','ಕೊನೆಯ ನವೀಕರಣ'],
+  'Distance radius':['दूरी का दायरा','ಹುಡುಕುವ ದೂರ'],
+  'Stored equipment locations, not live tracking.':['ये सहेजे गए मशीन स्थान हैं, लाइव ट्रैकिंग नहीं।','ಇವು ಉಳಿಸಿದ ಯಂತ್ರದ ಸ್ಥಳಗಳು; ನೇರ ಟ್ರ್ಯಾಕಿಂಗ್ ಅಲ್ಲ.'],
+  'No equipment coordinates available.':['मशीन का स्थान अभी नहीं दिया गया है।','ಯಂತ್ರದ ಸ್ಥಳ ಇನ್ನೂ ನೀಡಿಲ್ಲ.'],
+  'Map tiles unavailable. Equipment details remain in the list.':['नक्शा लोड नहीं हुआ। मशीन की जानकारी सूची में है।','ನಕ್ಷೆ ಲೋಡ್ ಆಗಲಿಲ್ಲ. ಯಂತ್ರಗಳ ವಿವರ ಪಟ್ಟಿಯಲ್ಲಿದೆ.'],
+  'Admin review':['प्रशासक समीक्षा','ನಿರ್ವಾಹಕರ ಪರಿಶೀಲನೆ'],
+  'Admin review required':['प्रशासक की अनुमति जरूरी है','ನಿರ್ವಾಹಕರ ಅನುಮತಿ ಬೇಕು'],
+  'Equipment verification':['मशीन सत्यापन','ಯಂತ್ರ ಪರಿಶೀಲನೆ'],
+  'Review reason':['समीक्षा का कारण','ಪರಿಶೀಲನೆಯ ಕಾರಣ'],
+  'A review reason is required':['समीक्षा का कारण लिखें','ಪರಿಶೀಲನೆಯ ಕಾರಣ ಬರೆಯಿರಿ'],
+  'Revoke verification':['सत्यापन हटाएँ','ಪರಿಶೀಲನೆ ರದ್ದುಮಾಡಿ'],
+  'Approve equipment':['मशीन स्वीकृत करें','ಯಂತ್ರವನ್ನು ಅನುಮೋದಿಸಿ'],
+  'Worker document review':['कर्मचारी दस्तावेज समीक्षा','ಕೆಲಸಗಾರರ ದಾಖಲೆ ಪರಿಶೀಲನೆ'],
+  'Government ID':['सरकारी पहचान पत्र','ಸರ್ಕಾರಿ ಗುರುತಿನ ಚೀಟಿ'],
+  'Driving license':['ड्राइविंग लाइसेंस','ಚಾಲನಾ ಪರವಾನಗಿ'],
+  'Verify profile':['प्रोफाइल सत्यापित करें','ಪ್ರೊಫೈಲ್ ಪರಿಶೀಲಿಸಿ'],
+  'Open disputes':['खुली शिकायतें','ತೆರೆದ ದೂರುಗಳು'],
+  'Payment reconciliation required':['भुगतान प्रदाता से लेनदेन जाँचना जरूरी है','ಪಾವತಿ ಸಂಸ್ಥೆಯೊಂದಿಗೆ ಹಣದ ವ್ಯವಹಾರ ಪರಿಶೀಲಿಸಬೇಕು'],
+  'Resolve issue':['शिकायत हल करें','ದೂರು ಪರಿಹರಿಸಿ'],
+  'Fuel partner permissions':['ईंधन भागीदार अनुमतियाँ','ಇಂಧನ ಪಾಲುದಾರರ ಅನುಮತಿಗಳು'],
+  'Allow fuel station registration':['पंप पंजीकरण की अनुमति','ಬಂಕ್ ನೋಂದಣಿಗೆ ಅನುಮತಿ'],
+  'Allow partner discounts':['भागीदार छूट की अनुमति','ಪಾಲುದಾರರ ರಿಯಾಯಿತಿಗೆ ಅನುಮತಿ'],
+  'Allow voucher redemption at this station':['इस पंप पर वाउचर स्वीकार करने की अनुमति','ಈ ಬಂಕ್‌ನಲ್ಲಿ ವೋಚರ್ ಸ್ವೀಕರಿಸಲು ಅನುಮತಿ'],
+  'Save permissions':['अनुमतियाँ सहेजें','ಅನುಮತಿಗಳನ್ನು ಉಳಿಸಿ'],
+  'Fuel station':['ईंधन पंप','ಇಂಧನ ಬಂಕ್'],
+  'None':['कोई नहीं','ಯಾವುದೂ ಇಲ್ಲ'],
+  'Saved successfully.':['सहेज लिया गया।','ಉಳಿಸಲಾಗಿದೆ.'],
+  'Allow popups to review this document.':['दस्तावेज देखने के लिए पॉपअप की अनुमति दें।','ದಾಖಲೆ ನೋಡಲು ಪಾಪ್‌ಅಪ್‌ಗೆ ಅನುಮತಿ ನೀಡಿ.'],
+  'Reset password':['पासवर्ड बदलें','ಪಾಸ್‌ವರ್ಡ್ ಬದಲಿಸಿ'],
+  'Send recovery email':['पासवर्ड बदलने का ईमेल भेजें','ಪಾಸ್‌ವರ್ಡ್ ಬದಲಿಸುವ ಇಮೇಲ್ ಕಳುಹಿಸಿ'],
+  'Forgot password?':['पासवर्ड भूल गए?','ಪಾಸ್‌ವರ್ಡ್ ಮರೆತಿರಾ?'],
+  'Check your email for the recovery link. Email delivery requires configured SMTP.':['पासवर्ड बदलने का लिंक ईमेल में देखें। ईमेल भेजने के लिए SMTP चाहिए।','ಪಾಸ್‌ವರ್ಡ್ ಬದಲಿಸುವ ಲಿಂಕ್ ಇಮೇಲ್‌ನಲ್ಲಿ ನೋಡಿ. ಇಮೇಲ್ ಕಳುಹಿಸಲು SMTP ಬೇಕು.'],
+  'Password updated. Log in with your new password.':['पासवर्ड बदल गया। नए पासवर्ड से लॉगिन करें।','ಪಾಸ್‌ವರ್ಡ್ ಬದಲಾಗಿದೆ. ಹೊಸ ಪಾಸ್‌ವರ್ಡ್‌ನಿಂದ ಲಾಗಿನ್ ಮಾಡಿ.'],
+  'Phone login is unavailable until an SMS provider is configured.':['SMS सेवा जुड़ने के बाद ही फोन लॉगिन मिलेगा।','SMS ಸೇವೆ ಜೋಡಿಸಿದ ನಂತರ ಫೋನ್ ಲಾಗಿನ್ ಸಿಗುತ್ತದೆ.'],
+};
