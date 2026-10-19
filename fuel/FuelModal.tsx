@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react';
 import type { ReactNode } from 'react';
 import { X } from 'lucide-react';
 import { useUiText } from '../localization';
+import '../fuel.css';
 export function FuelModal({title,onClose,busy,children}:{title:string;onClose:()=>void;busy:boolean;children:ReactNode}) {
   const t=useUiText();
   const dialog=useRef<HTMLDialogElement>(null);

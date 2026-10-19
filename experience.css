@@ -114,6 +114,15 @@
   .notification-item { width:100%; text-align:left; border:1px solid var(--rd-line); border-radius:6px; padding:14px; color:var(--rd-ink); display:grid; gap:6px; background:var(--rd-surface); }
   .notification-item.unread { border-left:4px solid var(--rd-action); background:var(--rd-soft); }
   .notification-item time,.notification-item > span { font-size:12px; color:var(--rd-muted); }
+  .notification-toolbar,.notification-meta,.notification-bottom { display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; }
+  .notification-toolbar { font-size:12px; color:var(--rd-muted); }
+  .notification-toolbar .market-actions { margin:0; }
+  .notification-demo { margin:0; border-left:3px solid var(--rd-action); padding:8px 12px; background:var(--rd-soft); font-size:13px; }
+  .notification-item .notification-worker { font-size:14px; color:var(--rd-ink); font-weight:600; }
+  .notification-item .notification-body { font-size:14px; line-height:1.6; }
+  .notification-meta { font-size:11px; }
+  .notification-action { display:inline-flex; align-items:center; gap:4px; font-weight:600; color:var(--rd-ink); }
+  .notification-item:focus-visible { outline:2px solid var(--rd-action); outline-offset:3px; }
   .connection-status { position:fixed; bottom:12px; left:12px; right:12px; z-index:1201; display:flex; align-items:center; justify-content:center; gap:10px; padding:12px; border:1px solid #ba7c1d; border-radius:6px; background:#fff3cc; color:#593d08; font-size:14px; }
   .hiring-estimate { border-left:3px solid var(--rd-action); padding:12px; background:var(--rd-soft); border-radius:4px; }
   .hiring-estimate strong { display:block; margin-top:6px; color:var(--rd-action); font-variant-numeric:tabular-nums; }
