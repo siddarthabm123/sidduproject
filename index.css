@@ -1,4 +1,3 @@
-@import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@10..48,500;10..48,600;10..48,700&family=DM+Sans:wght@400;500;600;700&family=Space+Mono&display=swap');
 @import 'tailwindcss';
 @import 'tw-animate-css';
 @plugin "@tailwindcss/typography";
@@ -6,6 +5,11 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
+  --color-canvas: var(--rd-canvas);
+  --color-surface: var(--rd-surface);
+  --color-forest: var(--rd-anchor);
+  --color-rust: var(--rd-action);
+  --color-sage: var(--rd-verified);
   --color-background: hsl(var(--background));
   --color-foreground: hsl(var(--foreground));
   --color-border: hsl(var(--border));
@@ -79,17 +83,17 @@
   --elevate-1: rgba(0, 0, 0, 0.03);
   --elevate-2: rgba(0, 0, 0, 0.08);
 
-  --background: 42 33% 96%;
+  --background: 42.86 24.14% 94.31%;
 
-  --foreground: 204 24% 15%;
+  --foreground: 140.00 5.45% 10.78%;
 
-  --border: 39 20% 84%;
+  --border: 36.92 20.00% 87.25%;
 
-  --card: 42 33% 99%;
+  --card: 0.00 0.00% 100.00%;
 
-  --card-foreground: 204 24% 15%;
+  --card-foreground: 140.00 5.45% 10.78%;
 
-  --card-border: 39 20% 84%;
+  --card-border: 36.92 20.00% 87.25%;
 
   --sidebar: 205 38% 13%;
 
@@ -113,37 +117,37 @@
 
   --popover-border: 39 20% 84%;
 
-  --primary: 32 94% 48%;
+  --primary: 17.01 75.71% 48.43%;
 
-  --primary-foreground: 204 24% 15%;
+  --primary-foreground: 144.00 16.13% 6.08%;
 
-  --secondary: 205 38% 13%;
+  --secondary: 168.00 33.33% 11.76%;
 
-  --secondary-foreground: 42 33% 96%;
+  --secondary-foreground: 0.00 0.00% 100.00%;
 
-  --muted: 40 24% 91%;
+  --muted: 40.00 24.00% 90.20%;
 
-  --muted-foreground: 204 12% 44%;
+  --muted-foreground: 137.14 3.66% 37.45%;
 
-  --accent: 176 65% 38%;
+  --accent: 160.52 56.20% 26.86%;
 
-  --accent-foreground: 42 33% 96%;
+  --accent-foreground: 0.00 0.00% 100.00%;
 
   --destructive: 3 68% 52%;
 
   --destructive-foreground: 42 33% 96%;
 
-  --input: 39 20% 84%;
-  --ring: 32 94% 48%;
+  --input: 36.92 20.00% 87.25%;
+  --ring: 160.52 56.20% 26.86%;
   --chart-1: 32 94% 48%;
   --chart-2: 176 65% 38%;
   --chart-3: 205 38% 13%;
   --chart-4: 46 89% 55%;
   --chart-5: 3 68% 52%;
 
-  --app-font-sans: 'DM Sans', sans-serif;
-  --app-font-serif: 'Bricolage Grotesque', sans-serif;
-  --app-font-mono: 'Space Mono', monospace;
+  --app-font-sans: 'Plus Jakarta Sans', sans-serif;
+  --app-font-serif: 'Plus Jakarta Sans', sans-serif;
+  --app-font-mono: 'JetBrains Mono', monospace;
   --radius: 0.5rem; /* 8px */
   --shadow-2xs: 0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0); /*replace with H S L */
   --shadow-xs: 0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0); /*replace with H S L */
@@ -442,15 +446,15 @@ body { margin: 0; background: var(--paper); color: var(--ink); }
 button, input, select, textarea { font: inherit; }
 button { cursor: pointer; }
 .app-shell { min-height: 100dvh; background: var(--paper); }
-.display { font-family: 'Bricolage Grotesque', sans-serif; }
-.mono { font-family: 'Space Mono', monospace; }
+.display { font-family: 'Plus Jakarta Sans', sans-serif; }
+.mono { font-family: 'JetBrains Mono', monospace; font-variant-numeric:tabular-nums; }
 .grain::after { content:""; position:fixed; inset:0; pointer-events:none; opacity:.035; background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.32'/%3E%3C/svg%3E"); z-index:20; }
 .lift { transition: transform .2s ease, box-shadow .2s ease; }
 .lift:hover { transform: translateY(-3px); box-shadow: 0 12px 28px rgba(24,48,58,.10); }
 .fade-up { animation: fadeUp .45s ease both; }
 @keyframes fadeUp { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:none; } }
 .map-grid { background-color:#d8e5df; background-image:linear-gradient(rgba(26,125,120,.14) 1px,transparent 1px),linear-gradient(90deg,rgba(26,125,120,.14) 1px,transparent 1px); background-size:36px 36px; }
-.leaflet-container { font-family: 'DM Sans', sans-serif; background: #d8e5df; }
+.leaflet-container { font-family: 'Plus Jakarta Sans', sans-serif; background: #d8e5df; }
 .riglogix-leaflet-pin span { display:block; width:28px; height:28px; border:6px solid #f6f3ea; border-radius:50% 50% 50% 0; background:#ee8b18; box-shadow:0 6px 16px rgba(24,48,58,.28); transform:rotate(-45deg); }
 .riglogix-leaflet-user, .riglogix-leaflet-machine { display:grid !important; place-items:center; border:3px solid #f6f3ea; border-radius:50%; box-shadow:0 6px 16px rgba(24,48,58,.28); font-size:10px; font-weight:800; }
 .riglogix-leaflet-user { background:#1a7d78; color:#fff; }
@@ -496,12 +500,12 @@ html[data-theme='dark'] .leaflet-container { background-color:#173943; }
 .landing-hero .grid-cols-3 > div { display:flex; min-width:0; flex-direction:column; gap:.2rem; padding-right:1rem; color:#f6f3ea; }
 .landing-hero .grid-cols-3 > div + div { border-left:1px solid #71878e; padding-left:1rem; }
 .landing-hero .grid-cols-3 strong { font-size:.8rem; }
-.landing-hero .grid-cols-3 span { font-family:'Space Mono',monospace; font-size:.68rem; color:#a9d9d1; }
+.landing-hero .grid-cols-3 span { font-family:'JetBrains Mono',monospace; font-size:.68rem; color:#a9d9d1; }
 .landing-band { background:var(--landing-paper); }
 .landing-results { background:#1a7d78; }
 .landing-results article { min-height:220px; background:#23726f; padding:1.75rem; color:#f6f3ea; }
 .landing-results article svg { color:#f6b73c; }
-.landing-results article h3 { margin-top:2.5rem; font-family:'Bricolage Grotesque',sans-serif; font-size:1.25rem; font-weight:700; }
+.landing-results article h3 { margin-top:2.5rem; font-family:'Plus Jakarta Sans',sans-serif; font-size:1.25rem; font-weight:700; }
 .landing-results article p { margin-top:.75rem; color:#d0e7e1; line-height:1.65; }
 html[data-theme='dark'] .landing-page { --landing-paper:#101827; --landing-panel:#162235; }
 html[data-theme='dark'] .landing-band { background:#101827 !important; color:#eef4f8; }

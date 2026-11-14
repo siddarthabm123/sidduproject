@@ -1,10 +1,10 @@
 import { authenticatedDatabase, ServiceError } from '../server-supabase.js';
-import { hireResponseSchema, hireWorkerSchema, workerProfileSchema } from '../workforce/validation.js';
+import { hireResponseSchema, hireWorkerSchema, workerProfileSchema, workforcePostSchema, workforceApplicationSchema, workforceApplicationResponseSchema } from '../workforce/validation.js';
 import { workerRoles, wageTypes } from '../workforce/types.js';
 import { coordinates } from '../fuel/domain.js';
 interface Request{method?:string;headers:Record<string,unknown>;query:Record<string,unknown>;body?:unknown}
 interface Response{status(n:number):Response;json(v:unknown):unknown;setHeader(k:string,v:string):unknown}
-const methods:Record<string,string>={profile:'POST',search:'GET',hire:'POST',records:'GET',respond:'POST',review:'POST'};
+const methods:Record<string,string>={profile:'POST',search:'GET',hire:'POST',records:'GET',respond:'POST',review:'POST',jobs:'GET','job-post':'POST',apply:'POST','application-response':'POST'};
 export default async function handler(req:Request,res:Response){
  res.setHeader('Cache-Control','no-store');const route=String(req.query.route||'');
  if(!Object.hasOwn(methods,route))return res.status(404).json({error:'Worker endpoint not found'});
@@ -14,6 +14,10 @@ export default async function handler(req:Request,res:Response){
    if(route==='profile'){const v=workerProfileSchema.parse(req.body);fn='save_worker_profile';key='profile';args={p_data:v,p_id:v.id??null}}
    if(route==='hire'){const v=hireWorkerSchema.parse(req.body);fn='hire_worker';key='hire';args={p_worker:v.worker_id,p_start:v.start_date,p_end:v.end_date,p_wage:v.agreed_wage,p_wage_type:v.wage_type,p_site:v.site_location,p_machine:v.machine_description,p_request:v.request_id,p_lat:v.site_latitude,p_lng:v.site_longitude}}
    if(route==='records'){fn='my_workforce_records';key='records'}
+   if(route==='jobs'){fn='workforce_board';key='board'}
+   if(route==='job-post'){fn='post_workforce_job';key='post';args={p_data:workforcePostSchema.parse(req.body)}}
+   if(route==='apply'){fn='apply_workforce_job';key='application';args={p_data:workforceApplicationSchema.parse(req.body)}}
+   if(route==='application-response'){const v=workforceApplicationResponseSchema.parse(req.body);fn='respond_workforce_application';key='application';args={p_id:v.id,p_action:v.action}}
    if(route==='search'){
      const lat=Number(req.query.latitude),lng=Number(req.query.longitude),radius=Number(req.query.radius_km??25),role=String(req.query.role||''),wage=String(req.query.wage_type||''),verified=String(req.query.verified_status||''),query=String(req.query.q||'');
      if(req.query.latitude==null||req.query.longitude==null||String(req.query.latitude).trim()===''||String(req.query.longitude).trim()===''||!coordinates(lat,lng)||![5,10,25,50].includes(radius)||(role&&!workerRoles.includes(role as any))||(wage&&!wageTypes.includes(wage as any))||!['','true','false'].includes(verified)||query.length>100)throw new Error('Invalid workforce filters');

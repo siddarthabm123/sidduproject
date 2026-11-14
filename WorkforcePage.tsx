@@ -5,24 +5,22 @@ import { FuelModal } from './fuel/FuelModal';
 import { distanceKm, rupees } from './fuel/domain';
 import type { FuelLanguage } from './fuel/labels';
 import { workerRequest } from './workforce/client';
-import { demoNegotiations, demoWorkers } from './workforce/demo';
+import { demoWorkers } from './workforce/demo';
+import { allDemoProfiles, demoProfiles, demoHires, demoHireKey } from './workforce/demo-storage';
 import WorkerSiteMap from './WorkerSiteMap';
 import type { SitePoint } from './WorkerSiteMap';
 import WorkerHireCard from './WorkerHireCard';
 import HiringEstimate from './HiringEstimate';
 import { respondDemoHire } from './workforce/negotiation';
-import { workerText } from './workforce/labels';
+import { boardText as workerText } from './workforce/board-labels';
+import WorkforceJobBoard from './WorkforceJobBoard';
+import { workerProfilePath } from './workforce/routes';
 import { hireWorkerSchema } from './workforce/validation';
 import { localDate } from './workforce/dates';
 import { workerRoles } from './workforce/types';
 import type { HireAction, PublicWorkerProfile, WorkerHire, WorkerProfile, WorkforceRecords } from './workforce/types';
 import './workforce.css';
 
-const demoHireKey='rigdesk-demo-worker-hires-v1',demoProfileKey='rigdesk-demo-worker-profiles-v1';
-export function demoProfiles():WorkerProfile[]{try{const v=JSON.parse(localStorage.getItem(demoProfileKey)||'[]');return Array.isArray(v)?v.filter(p=>['demo-manager','demo-owner','demo-customer'].includes(p.user_id)&&typeof p.full_name==='string'&&Number.isFinite(p.latitude)&&Number.isFinite(p.longitude)).slice(0,100).map(p=>p.user_id==='demo-manager'?{...p,user_id:'demo-owner'}:p):[]}catch{return []}}
-export function allDemoProfiles():WorkerProfile[]{const custom=demoProfiles();return [...custom,...demoWorkers.filter(p=>!custom.some(c=>c.id===p.id))]}
-function demoHires():WorkerHire[]{try{const v=JSON.parse(localStorage.getItem(demoHireKey)||'[]');let rows:WorkerHire[]=Array.isArray(v)?v.filter(h=>typeof h.worker_id==='string'&&typeof h.end_date==='string').slice(0,100):[];if(!localStorage.getItem('rigdesk-worker-negotiation-examples-v1')){rows=[...demoNegotiations().filter(example=>!rows.some(h=>h.worker_id===example.worker_id&&['PENDING','ACTIVE'].includes(h.status))),...rows];localStorage.setItem(demoHireKey,JSON.stringify(rows));localStorage.setItem('rigdesk-worker-negotiation-examples-v1','true')}return rows}catch{return []}}
-export const saveDemoProfile=(profile:WorkerProfile)=>localStorage.setItem(demoProfileKey,JSON.stringify([profile,...demoProfiles().filter(p=>p.id!==profile.id)]));
 export default function WorkforcePage({role,demo,language}:{role:'customer'|'owner';demo:boolean;language:FuelLanguage}){
  const t=(s:string)=>workerText(s,language);
  const [query,setQuery]=useState(''),[category,setCategory]=useState(''),[wage,setWage]=useState(''),[verified,setVerified]=useState(''),[radius,setRadius]=useState(25);
@@ -33,12 +31,16 @@ export default function WorkforcePage({role,demo,language}:{role:'customer'|'own
  const [start,setStart]=useState(localDate()),[end,setEnd]=useState(localDate()),[rate,setRate]=useState(''),[site,setSite]=useState(''),[machine,setMachine]=useState('');
  const request=useRef<{payload:string;id:string}|null>(null),pending=useRef(false);
  const [sitePoint,setSitePoint]=useState<SitePoint|null>(null),[siteLocating,setSiteLocating]=useState(false);
- useEffect(()=>{const id=window.location.hash.slice(1);if(/^record-[0-9a-f-]{36}$/i.test(id))document.getElementById(id)?.scrollIntoView({block:'center'})},[records]);
+ useEffect(()=>{
+   const scroll=()=>{const id=window.location.hash.slice(1);if(['available-workers','hiring-agreements','worker-profiles'].includes(id)||/^record-[0-9a-f-]{36}$/i.test(id))document.getElementById(id)?.scrollIntoView({block:'start'})};
+   scroll();window.addEventListener('hashchange',scroll);return()=>window.removeEventListener('hashchange',scroll);
+ },[records]);
  useEffect(()=>{
    const timer=setInterval(()=>setRefresh(n=>n+1),30000);
    const visible=()=>{if(document.visibilityState==='visible')setRefresh(n=>n+1)};
    document.addEventListener('visibilitychange',visible);
-   return()=>{clearInterval(timer);document.removeEventListener('visibilitychange',visible)};
+   window.addEventListener('rigdesk-workforce-updated',visible);window.addEventListener('storage',visible);
+   return()=>{clearInterval(timer);document.removeEventListener('visibilitychange',visible);window.removeEventListener('rigdesk-workforce-updated',visible);window.removeEventListener('storage',visible)};
  },[]);
  useEffect(()=>{
    const controller=new AbortController();setLoading(true);setError('');
@@ -77,23 +79,23 @@ export default function WorkforcePage({role,demo,language}:{role:'customer'|'own
    try{if(demo){const current=demoHires().map(h=>{if(h.id!==id)return h;const manager=[...demoWorkers,...demoProfiles()].find(p=>p.id===h.worker_id)?.user_id||'';return respondDemoHire(h,`demo-${role}`,manager,action,version,amount,note)});localStorage.setItem(demoHireKey,JSON.stringify(current));}else await workerRequest('respond',{id,action,expected_version:version,amount,note});setRefresh(n=>n+1);return true}catch(e){setError(e instanceof Error?e.message:'Invalid workforce request');setRefresh(n=>n+1);return false}finally{pending.current=false;setBusy(false)}
  };
  const gps=()=>{if(!navigator.geolocation){setError('GPS unavailable. Enter a location.');return}navigator.geolocation.getCurrentPosition(p=>{setLat(String(p.coords.latitude));setLng(String(p.coords.longitude))},()=>setError('GPS unavailable. Enter a location.'),{timeout:12000})};
- return <div className="workforce fuel-hub" data-localized><div className="fuel-page-heading"><div><span className="fuel-eyebrow">RIGDESK / {t('Workforce')}</span><h1>{t(role==='owner'?'Hire On-Site Workforce':'Recruit Skilled Workers')}</h1></div><Link href="/dashboard/worker/create-profile" className="fuel-button"><Plus size={17}/>{t('Create worker profile')}</Link></div>
+ return <div className="workforce fuel-hub" data-localized><div className="fuel-page-heading"><div><span className="fuel-eyebrow">RIGDESK / {t('Workforce')}</span><h1>{t(role==='owner'?'Post jobs & review crew bids':'Request workers & apply for jobs')}</h1></div><Link href={workerProfilePath} className="fuel-button"><Plus size={17}/>{t('Create worker profile')}</Link></div>
    {demo&&<p className="fuel-demo">{t('Demo workers only. No real employment contracts or document uploads.')}</p>}
-   <div className="workforce-filters"><label>{t('Search name or skills')}<span className="workforce-search"><Search size={16}/><input value={query} maxLength={100} onChange={e=>setQuery(e.target.value)}/></span></label>
+   <WorkforceJobBoard role={role} language={language} demo={demo} managedProfiles={records.profiles} onChanged={()=>setRefresh(n=>n+1)}/><details className="workforce-directory"><summary>{t('Browse worker directory')}</summary><div className="workforce-filters"><label>{t('Search name or skills')}<span className="workforce-search"><Search size={16}/><input value={query} maxLength={100} onChange={e=>setQuery(e.target.value)}/></span></label>
      <label>{t('Role')}<select value={category} onChange={e=>setCategory(e.target.value)}><option value="">{t('All roles')}</option>{workerRoles.map(r=><option key={r} value={r}>{t(r)}</option>)}</select></label>
      <label>{t('Daily wage')} / {t('Monthly salary')}<select value={wage} onChange={e=>setWage(e.target.value)}><option value="">{t('All wage types')}</option><option value="DAILY_WAGE">{t('Daily wage')}</option><option value="MONTHLY_SALARY">{t('Monthly salary')}</option></select></label>
      <label>{t('Verified Profile')}<select value={verified} onChange={e=>setVerified(e.target.value)}><option value="">{t('All profiles')}</option><option value="true">{t('Verified Profile')}</option><option value="false">{t('Unverified Profile')}</option></select></label>
    </div><div className="workforce-location"><label>{t('Latitude')}<input type="number" min="-90" max="90" step="any" value={lat} onChange={e=>setLat(e.target.value)}/></label><label>{t('Longitude')}<input type="number" min="-180" max="180" step="any" value={lng} onChange={e=>setLng(e.target.value)}/></label><label>{t('Distance radius')}<select value={radius} onChange={e=>setRadius(Number(e.target.value))}>{[5,10,25,50].map(n=><option key={n} value={n}>{n} km</option>)}</select></label><button className="fuel-button secondary" onClick={gps}><LocateFixed size={16}/>{t('Use GPS')}</button></div>
    {error&&<p className="fuel-error" role="alert">{t(error)}</p>}{notice&&<p className="fuel-success" role="status">{t(notice)}</p>}
-   <section aria-busy={loading}>{loading&&!workers.length?<p className="fuel-empty" role="status">{t('Loading workforce')}</p>:!workers.length?<p className="fuel-empty">{t('No workers match your filters')}</p>:<div className="workforce-grid">{workers.map(w=><article className="worker-card" key={w.id}>
+   <section id="available-workers" className="workforce-anchor" aria-busy={loading}>{loading&&!workers.length?<p className="fuel-empty" role="status">{t('Loading workforce')}</p>:!workers.length?<p className="fuel-empty">{t('No workers match your filters')}</p>:<div className="workforce-grid">{workers.map(w=><article className="worker-card" key={w.id}>
      <div className="worker-card-head"><div className="worker-avatar"><Users size={25}/></div><div><h2>{w.full_name}</h2><span className="worker-role">{t(w.worker_role)}</span></div></div>
      <span className={`worker-verification ${w.is_verified?'verified':'unverified'}`}>{w.is_verified&&<ShieldCheck size={14}/>} {t(w.is_verified?'Verified Profile':'Unverified Profile')}</span>
      <p>{w.experience_years} {t('Years')} · <MapPin size={13}/> {w.public_area} · {w.distance_km.toFixed(1)} {t('km')}</p><p>{w.type_of_work.join(' · ')}</p>
      <div className="worker-wage">{rupees(w.wage_rate)} <span>/ {t(w.wage_type==='DAILY_WAGE'?'Day':'Month')}</span></div>
      <button className="fuel-button" disabled={w.is_managed} onClick={()=>{request.current=null;setWorker(w);setRate(String(w.wage_rate));setSitePoint(null);setSite('');setFormError('')}}><Plus size={16}/>{t('Assign / Hire Worker')}</button>
    </article>)}</div>}</section>
-   <section className="workforce-records"><h2>{t('Hiring agreements')}</h2>{!records.hires.length?<p className="fuel-empty">{t('No hiring agreements yet')}</p>:records.hires.map(h=><WorkerHireCard key={`${h.id}-${h.offer_version||1}-${h.status}`} hire={h} language={language} busy={busy} onRespond={respond}/>)}</section>
-   <section className="workforce-records"><h2>{t('My worker profiles')}</h2>{!records.profiles.length?<p className="fuel-empty">{t('No worker profiles yet')}</p>:records.profiles.map(p=><article className="worker-hire" key={p.id}><div><strong>{p.full_name}</strong><p>{t(p.worker_role)} · {t(p.is_verified?'Verified Profile':'Unverified Profile')}</p></div><Link href={`/dashboard/worker/create-profile?edit=${p.id}`} className="fuel-button secondary">{t('Edit profile')}</Link></article>)}</section>
+   </details><section id="hiring-agreements" className="workforce-records workforce-anchor"><h2>{t('Hiring agreements')}</h2>{!records.hires.length?<p className="fuel-empty">{t('No hiring agreements yet')}</p>:records.hires.map(h=><WorkerHireCard key={`${h.id}-${h.offer_version||1}-${h.status}`} hire={h} language={language} busy={busy} onRespond={respond}/>)}</section>
+   <section id="worker-profiles" className="workforce-records workforce-anchor"><h2>{t('My worker profiles')}</h2>{!records.profiles.length?<p className="fuel-empty">{t('No worker profiles yet')}</p>:records.profiles.map(p=><article className="worker-hire" key={p.id}><div><strong>{p.full_name}</strong><p>{t(p.worker_role)} · {t(p.is_verified?'Verified Profile':'Unverified Profile')}</p></div><Link href={`${workerProfilePath}?edit=${p.id}`} className="fuel-button secondary">{t('Edit profile')}</Link></article>)}</section>
    {worker&&<FuelModal title={t('Assign / Hire Worker')} busy={busy} onClose={()=>setWorker(null)}><form onSubmit={hire}><div className="fuel-dialog-body"><strong>{worker.full_name} · {t(worker.worker_role)}</strong><span className={`worker-verification ${worker.is_verified?'verified':'unverified'}`}>{t(worker.is_verified?'Verified Profile':'Unverified Profile')}</span>
      <div className="fuel-form-grid"><label>{t('Start date')}<input type="date" value={start} min={localDate()} required onChange={e=>setStart(e.target.value)} disabled={busy}/></label><label>{t('End date (inclusive)')}<input type="date" value={end} min={start} required onChange={e=>setEnd(e.target.value)} disabled={busy}/></label></div>
      <div className="worker-expected-wage"><span>{t('Worker expected wage')}</span><strong>{rupees(worker.wage_rate)} / {t(worker.wage_type==='DAILY_WAGE'?'Day':'Month')}</strong></div><label>{t('Your offered wage')} / {t(worker.wage_type==='DAILY_WAGE'?'Day':'Month')}<input type="number" value={rate} min="1" max="1000000" step="0.01" required onChange={e=>setRate(e.target.value)} disabled={busy}/></label>

@@ -1,0 +1,25 @@
+# Ship the active app, not local credentials or generated pitch artifacts.
+.git/
+.vercel/
+.env*
+node_modules/
+dist/
+output/
+tmp/
+.codex*/
+.aws/
+.github-publish/
+.ppt-build/
+.pnpm-store/
+RigLogix-source-code/
+RigLogix-runnable/
+*.log
+*.pdf
+*.pptx
+*.zip
+*.pem
+*.key
+/page-*.png
+/riglogix-*.jpg
+/WhatsApp_Image_*
+/Pasted-*

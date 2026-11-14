@@ -5,8 +5,12 @@ export const demoWorkers:WorkerProfile[]=[
  ['Suresh P','LABOUR',3,800,'DAILY_WAGE',false,12.95,77.6,'Site Clearing, Loading','Wilson Garden'],
  ['Imran Ali','MECHANIC',9,32000,'MONTHLY_SALARY',true,13.02,77.59,'Hydraulics, Diesel Engines','Hebbal'],
  ['Manjunath S','RIG_OPERATOR',6,1500,'DAILY_WAGE',true,12.96,77.64,'Rig Drilling, Compressor','Indiranagar'],
- ['Kiran R','HELPER',2,650,'DAILY_WAGE',false,12.93,77.58,'Site Clearing, Rig Support','Banashankari']
-].map((v,i)=>({id:`00000000-0000-4000-8000-${String(i+1).padStart(12,'0')}`,user_id:i===0||i===1||i===3?'demo-owner':'demo-customer',full_name:String(v[0]),worker_role:v[1] as WorkerProfile['worker_role'],experience_years:Number(v[2]),wage_rate:Number(v[3]),wage_type:v[4] as WorkerProfile['wage_type'],is_verified:Boolean(v[5]),latitude:Number(v[6]),longitude:Number(v[7]),type_of_work:String(v[8]).split(', '),skills:String(v[8]).split(', '),public_area:String(v[9]),address:'Demo address',phone_number:'',driving_license_url:null,govt_id_url:'demo-only',license_class:null,availability_status:true,created_at:'2026-10-12T00:00:00Z'}));
+ ['Kiran R','HELPER',2,650,'DAILY_WAGE',false,12.93,77.58,'Site Clearing, Rig Support','Banashankari'],
+ ['Naveen H','HEAVY_DRIVER',6,1300,'DAILY_WAGE',true,12.98,77.60,'JCB, Excavator','Bengaluru'],
+ ['Prakash M','RIG_OPERATOR',8,1600,'DAILY_WAGE',true,12.97,77.59,'Rig Drilling, Compressor','Bengaluru'],
+ ['Harish N','HEAVY_DRIVER',4,1250,'DAILY_WAGE',true,12.98,77.61,'JCB, Excavator','Bengaluru'],
+ ['Ganesh R','RIG_OPERATOR',5,1500,'DAILY_WAGE',true,12.96,77.59,'Rig Drilling, Compressor','Bengaluru']
+].map((v,i)=>({id:`00000000-0000-4000-8000-${String(i+1).padStart(12,'0')}`,user_id:i===0||i===1||i===3||i===6||i===8?'demo-owner':'demo-customer',full_name:String(v[0]),worker_role:v[1] as WorkerProfile['worker_role'],experience_years:Number(v[2]),wage_rate:Number(v[3]),wage_type:v[4] as WorkerProfile['wage_type'],is_verified:Boolean(v[5]),latitude:Number(v[6]),longitude:Number(v[7]),type_of_work:String(v[8]).split(', '),skills:String(v[8]).split(', '),public_area:String(v[9]),address:'Demo address',phone_number:'',driving_license_url:v[1]==='HEAVY_DRIVER'?'demo-only':null,govt_id_url:'demo-only',license_class:v[1]==='HEAVY_DRIVER'?'HMV':null,availability_status:true,created_at:'2026-10-12T00:00:00Z'}));
 
 export function demoNegotiations(now=new Date()):WorkerHire[]{
   const start=new Date(now);start.setDate(start.getDate()+1);start.setHours(9,0,0,0);

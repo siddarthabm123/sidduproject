@@ -16,6 +16,10 @@ Built for construction, agriculture, borewell drilling, logistics, and infrastru
 
 **Strategy and rollout:** [Business Model Canvas](docs/business-model-canvas.md) | [Database and deployment runbook](docs/deployment.md)
 
+**Evaluator presentation:** `/pitch-highlights` is a public, three-slide English route with founder-attributed agent involvement, a proposed 2-3% owner fee calculator, five execution pillars and a downloadable unfunded JCB bond example. It does not change checkout pricing or enable payments. [Frontend feature inventory and pitch claim boundaries](docs/pitch-feature-audit.md).
+
+**UI redesign:** The Warm Stone / Deep Forest Slate / Terracotta branch updates theme, navigation, catalogue cards, photos, quote presentation and fleet surfaces while preserving booking calculations and APIs. [Design details, photo credits and verification limits](docs/warm-stone-redesign.md).
+
 ### Reliability Update: 18 October 2026
 
 - Latest verification: **77 automated tests**, TypeScript checking and production build passed; the production pnpm dependency audit reported **zero advisories**. Browser checks covered language/filter switching, notification navigation, local demo work submission/approval and hiring estimates. Real provider delivery and two-account production transactions remain launch gates, not claimed successes.
@@ -134,7 +138,9 @@ flowchart LR
 
 ### New Service Layers (Local Implementation)
 
-The **Fuel hub** is available in the owner menu at `/dashboard/owner/fuel-hub`. Both dashboards now have a **Workforce** menu: `/dashboard/owner/workforce` and `/dashboard/customer/hire-workers`, with a three-step profile form at `/dashboard/worker/create-profile`.
+The **Fuel hub** is available in the owner menu at `/dashboard/owner/fuel-hub`. Both dashboards have a **Workforce** menu and a visible workforce section on the overview and account pages, in demo and real accounts. Customers use `/dashboard/customer/hire-workers`; owners use `/dashboard/owner/workforce`. Direct shortcuts open hiring agreements, managed worker profiles and the three-step profile form at `/dashboard/worker/create-profile`. Short URLs such as `/owner/workforce` and `/customer/hire-workers` resolve to the signed-in role's workforce view. GPS job sites, expected-versus-offered wages, accept/decline/counter-offers, private documents and saved hiring records all reuse the existing workforce flow; real records remain scoped to the authenticated account.
+
+**Role-specific job board (15 November 2026):** Customers can post worker requirements with salary and headcount, or apply to owner jobs using managed worker profiles. Owners post vacancies and accept/decline crew bids from their overview or workforce page; they can also offer their managed crew against customer requirements. A crew award creates one active hiring agreement per worker for both accounts. Applications require admin-reviewed private identity documents and, for heavy drivers, a commercial license and class. Demo accounts have shared fictional examples. Real-account jobs require the new additive SQL update; it is **not yet installed in the live project**. See [workforce job board setup and verification](docs/workforce-job-board.md).
 
 These additions include TypeScript APIs, transactional PostgreSQL updates, private document uploads, Hindi/Kannada UI labels and automated tests. The existing production Supabase project was updated in place on 17 October 2026. Demo stations/workers are clearly labelled fictional samples; real accounts use actual approved partners and registered workers. The verified database state is tracked in [the rollout runbook](docs/deployment.md).
 

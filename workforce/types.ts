@@ -24,3 +24,13 @@ export interface WorkerHire {
   demo_example?:boolean;
 }
 export interface WorkforceRecords { profiles:WorkerProfile[];hires:WorkerHire[] }
+export interface WorkforcePost {
+  id:string;author_id:string;author_role:'customer'|'owner';author_name:string;title:string;worker_role:WorkerRole;
+  headcount:number;filled_count:number;wage_rate:number;wage_type:WageType;start_date:string;end_date:string;
+  site_location:string;site_latitude:number;site_longitude:number;description:string;status:'OPEN'|'FILLED'|'CLOSED';created_at:string;
+}
+export interface WorkforceApplication {
+  id:string;post_id:string;applicant_id:string;applicant_name:string;worker_ids:string[];worker_names:string[];
+  offered_wage:number;note:string;status:'PENDING'|'ACCEPTED'|'DECLINED'|'WITHDRAWN';request_id:string;created_at:string;hire_ids:string[];
+}
+export interface WorkforceBoard {actor_id?:string;posts:WorkforcePost[];applications:WorkforceApplication[]}

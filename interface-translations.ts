@@ -1,6 +1,14 @@
 type Pair = [string,string];
 // Hindi, Kannada. Brand names, registered business names and record IDs stay unchanged.
 const text:Record<string,Pair> = {
+  'Rental duration':['किराए की अवधि','ಬಾಡಿಗೆ ಅವಧಿ'],
+  'Daily':['दैनिक','ದಿನದ'], 'Weekly':['साप्ताहिक','ವಾರದ'], 'Monthly':['मासिक','ತಿಂಗಳ'],
+  'City or equipment':['शहर या मशीन','ನಗರ ಅಥವಾ ಯಂತ್ರ'],
+  'Availability':['उपलब्धता','ಲಭ್ಯತೆ'],
+  'All availability':['सभी उपलब्धताएं','ಎಲ್ಲಾ ಲಭ್ಯತೆಗಳು'],
+  'Photo unavailable':['फोटो उपलब्ध नहीं','ಫೋಟೋ ಲಭ್ಯವಿಲ್ಲ'],
+  'Photo credit':['फोटो श्रेय','ಫೋಟೋ ಕೃಪೆ'],
+  'Illustrative category photo':['श्रेणी का उदाहरण फोटो','ವರ್ಗದ ಉದಾಹರಣೆ ಫೋಟೋ'],
   'Loading Google map...':['गूगल मानचित्र लोड हो रहा है...','ಗೂಗಲ್ ನಕ್ಷೆ ಲೋಡ್ ಆಗುತ್ತಿದೆ...'],
   'Address from map pin':['मानचित्र से पता','ನಕ್ಷೆಯ ಗುರುತಿನ ವಿಳಾಸ'],
   'Check your network connection and refresh the page.':['इंटरनेट जाँचें और पेज फिर लोड करें।','ಇಂಟರ್ನೆಟ್ ಪರಿಶೀಲಿಸಿ ಪುಟವನ್ನು ಮತ್ತೆ ಲೋಡ್ ಮಾಡಿ.'],

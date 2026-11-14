@@ -1,0 +1,15 @@
+export const pitchPillars = [
+  {title:'Reverse Bidding',status:'Built booking workflow',detail:'Post a bulk requirement. Compare competing owners by price, rating, reviews or arrival time.',boundary:'Comparable scope matters. The lowest bid does not automatically win.'},
+  {title:'Zero-Cancellation Escrow Lock',status:'Design goal / funding not live',detail:'A proposed upfront commitment reserve helps cover an agreed cancellation loss after acceptance.',boundary:'No zero-cancellation guarantee. Demo balances are simulated; funded checkout and fair dispute rules still need activation.'},
+  {title:'Bulk Diesel Bunk Discounts',status:'Voucher flow built / partners needed',detail:'Aggregate owner demand, negotiate pump discounts and issue quantity-based QR vouchers.',boundary:'Sample pumps are fictional. Real discounts require signed station agreements and assigned redemption staff.'},
+  {title:'Operator / Labour Job Portal',status:'Managed hiring workflow built',detail:'Search skills and location. Keep the expected wage separate from an offer, then accept, decline or counter.',boundary:'Workers need manager-assisted registration today. Independent worker login, job applications and payroll are planned.'},
+  {title:'Automated Digital Bond',status:'Booking PDF + QR checks built',detail:'Keep the booking scope, parties and recorded amounts in a one-page, server-signed record.',boundary:'A QR checks issued data, not legal enforceability, physical work or payment outside the recorded ledger.'},
+] as const;
+
+export function ownerEconomics(value:number,rate:2|3){
+  if(!Number.isFinite(value)||value<=0||![2,3].includes(rate))throw new Error('Choose a positive work value and a 2% or 3% proposed fee.');
+  const valuePaise=Math.round(value*100),feePaise=Math.round(valuePaise*rate/100);
+  return {work:valuePaise/100,fee:feePaise/100,ownerNet:(valuePaise-feePaise)/100};
+}
+
+export const executiveSummary='RigDesk connects borewell, logistics, JCB and heavy equipment customers with owners through bookings and shared work records. The frontend supports reverse auctions, bid sorting by price, rating, reviews and arrival, multi-owner unit allocation, GPS site selection, and drilling, casing or route estimates. Owners manage fleets and job milestones. Customers review daily hours and meter readings; signed booking PDFs provide QR checks without exposing private contacts. Workforce screens support managed profiles, private document uploads, expected wages and negotiated offers. Fuel screens map stations and generate printable discount vouchers, but station partnerships remain necessary. Deposit and cancellation examples are simulated; funded escrow, payment settlement and recorded calling require provider onboarding. Gemini ranking and Google discovery are optional integrations, not guaranteed live intelligence. Our proposed business model charges owners two to three percent per deal. The founder estimates eighty percent broker involvement from experience; independent validation and customer willingness to pay remain unproven.';

@@ -3,11 +3,12 @@ import { Link } from 'wouter';
 import { ArrowLeft, ArrowRight, Check, FileCheck, Upload } from 'lucide-react';
 import type { FuelLanguage } from './fuel/labels';
 import { uploadWorkerDocument, workerRequest } from './workforce/client';
-import { workerText } from './workforce/labels';
+import { boardText as workerText } from './workforce/board-labels';
+import { workforcePath } from './workforce/routes';
 import { documentFileSchema, workerExperienceSchema, workerPersonalSchema, workerProfileSchema } from './workforce/validation';
 import { workerRoles } from './workforce/types';
 import type { WorkerProfile, WorkerRole, WageType, WorkforceRecords } from './workforce/types';
-import { allDemoProfiles, saveDemoProfile } from './WorkforcePage';
+import { allDemoProfiles, saveDemoProfile } from './workforce/demo-storage';
 import './workforce.css';
 
 interface Fields {full_name:string;phone_number:string;address:string;public_area:string;worker_role:WorkerRole;latitude:string;longitude:string;experience_years:string;work:string;skills:string;wage_rate:string;wage_type:WageType;license_class:string;availability_status:boolean}
@@ -18,7 +19,7 @@ export default function WorkerProfilePage({demo,role,language}:{demo:boolean;rol
  const [form,setForm]=useState<Fields>(initial),[step,setStep]=useState(0),[error,setError]=useState(''),[fields,setFields]=useState<string[]>([]),[busy,setBusy]=useState(false),[loading,setLoading]=useState(Boolean(edit)),[success,setSuccess]=useState(false);
  const [government,setGovernment]=useState<File|null>(null),[license,setLicense]=useState<File|null>(null),[govtPath,setGovtPath]=useState(''),[licensePath,setLicensePath]=useState<string|null>(null),[consent,setConsent]=useState(false);
  const requestId=useRef(crypto.randomUUID());const pending=useRef(false);
- const destination=role==='owner'?'/dashboard/owner/workforce':'/dashboard/customer/hire-workers';
+ const destination=workforcePath(role);
  useEffect(()=>{
    if(!edit)return;
    const controller=new AbortController();
@@ -77,7 +78,7 @@ export default function WorkerProfilePage({demo,role,language}:{demo:boolean;rol
          {input('work','Machinery / work handled','text',{'aria-invalid':fields.includes('type_of_work'),placeholder:t('Comma-separated entries'),maxLength:2000})}{input('skills','Skills','text',{placeholder:t('Comma-separated entries'),maxLength:2000})}
          <label className="fuel-check full-width"><input type="checkbox" checked={form.availability_status} onChange={e=>value('availability_status',e.target.checked)}/>{t('Available')}</label>
        </div>}
-       {step===2&&<div className="worker-documents"><label className="worker-upload"><Upload size={20}/>{t('Government ID (PDF, PNG, JPEG; 5 MB max)')}<input type="file" accept="application/pdf,image/png,image/jpeg" disabled={busy||demo} onChange={e=>file(e.target.files?.[0],'government')}/>{govtPath&&!government&&<span>{t('Document retained privately')}</span>}</label>
+       {step===2&&<div className="worker-documents"><p>{t('Government photo ID for every worker; commercial driving license and class for heavy drivers. Admin review is required before applying.')}</p><label className="worker-upload"><Upload size={20}/>{t('Government ID (PDF, PNG, JPEG; 5 MB max)')}<input type="file" accept="application/pdf,image/png,image/jpeg" disabled={busy||demo} onChange={e=>file(e.target.files?.[0],'government')}/>{govtPath&&!government&&<span>{t('Document retained privately')}</span>}</label>
          <label className="worker-upload"><Upload size={20}/>{t('Commercial driving license')}<input type="file" accept="application/pdf,image/png,image/jpeg" disabled={busy||demo} onChange={e=>file(e.target.files?.[0],'license')}/>{licensePath&&!license&&<span>{t('Document retained privately')}</span>}</label>
          {input('license_class','License class','text',{maxLength:100})}<label className="worker-consent"><input type="checkbox" required checked={consent} disabled={busy} onChange={e=>setConsent(e.target.checked)}/>{t('I am this worker, or have permission to register and manage this profile.')}</label>
        </div>}
