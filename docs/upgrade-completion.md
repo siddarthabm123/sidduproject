@@ -2,6 +2,8 @@
 
 15 November 2026. This release adds practical tools to the existing prototype. It does not create payment, messaging, fuel or financing provider accounts.
 
+Deployed application: `511707c`, [live RigDesk](https://rigdesk-marketplace-rig-logi-x.vercel.app/). Source and this checklist are on [`codex/ui-redesign-warm-stone`](https://github.com/siddarthabm123/sidduproject/tree/codex/ui-redesign-warm-stone). Public setup overview: [launch guide](https://rigdesk-marketplace-rig-logi-x.vercel.app/launch-guide).
+
 ## Implemented
 
 | Upgrade | Where / behavior | Data boundary |
@@ -38,7 +40,7 @@ Google implementation references: [Place Details](https://developers.google.com/
 
 - The existing Vercel production configuration has Supabase browser settings and bond settings, but **no Google Places API key**. Published-source contacts work independently; live Google search remains unconfigured until the key is added.
 - Supabase CLI reports no access token. No database write, reset, seed or migration was performed by this release. The previously prepared workforce job-board SQL remains pending.
-- Existing payment APIs remain disabled. There is no payment, email/SMS or recorded-calling provider setup.
+- Existing payment APIs remain disabled. No payment, email/SMS or recorded-calling provider account was created by this work; delivery and provider round trips remain unverified.
 - Automated isolated PostgreSQL tests do not substitute for a real separate-account staging transaction or concurrent production database tests.
 
 ## Your next actions, in order
