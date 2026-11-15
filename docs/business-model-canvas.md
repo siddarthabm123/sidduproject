@@ -2,6 +2,8 @@
 
 **Direct equipment booking, a ready workforce, and a traceable job-to-payment workflow.**
 
+**Current fee clarification, 15 November 2026:** The implemented request estimate retains a 3.5% customer-side fee. The founder's 2-3% owner-side model is proposed; the 5% figures below are an older sensitivity experiment, not a live fee or revenue claim. Agree one policy before payment activation. See [the fee policy](fee-policy.md).
+
 > RigDesk removes the broker, not the trust.
 
 **Recommended launch:** an asset-light B2B marketplace in one Karnataka service cluster, initially focused on excavators/JCBs, tippers and borewell rigs. Build reliable supply and repeat contractor demand before expanding geography. All prices below are proposals to test, not existing revenue or partner commitments.

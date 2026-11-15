@@ -1,3 +1,4 @@
+import { upgradeText as productText } from './upgrades/labels';
 type Pair = [string,string];
 // Hindi, Kannada. Brand names, registered business names and record IDs stay unchanged.
 const text:Record<string,Pair> = {
@@ -165,6 +166,8 @@ export function interfaceText(source:string,language:'en'|'hi'|'kn'):string|unde
   if(language==='en')return source;
   const pair=upgradeText[source] || reviewText[source] || additionalText[source] || liveTranslations[source] || text[source];
   if(pair)return pair[language==='kn'?1:0];
+  const product=productText(source,language);
+  if(product!==source)return product;
   const numberError=source.match(/^(.+) must be a positive number no greater than ([\d.]+)\.$/);
   if(numberError) {
     const label=interfaceText(numberError[1],language)||numberError[1];

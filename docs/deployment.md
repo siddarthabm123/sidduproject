@@ -2,6 +2,8 @@
 
 ## Production Release, 15 November 2026
 
+Practical upgrade follow-up: supplier menus and official-source contacts; authenticated, on-demand Google contact lookup; device-scoped saved equipment/comparison; per-listing quote rounding and requested work scope; owner booking reports/CSV/cost planning; and public readiness/privacy/terms pages. This code uses existing database flows and requires no new database update itself. The earlier workforce-board update is still pending. Production has no Places API key, so nearby Google lookup remains disabled until configured; published business contacts remain available. All 96 tests and TypeScript checks passed. See [completed work and owner actions](upgrade-completion.md).
+
 Fuel demo follow-up: the owner Fuel hub now includes three preloaded active vouchers and three printable fictional receipts with reconciled before-discount, savings and paid totals. Sample purchase history is browser-only; no production database update is required. Fuel checks cover expiry/reload behavior, voucher limits, money rounding, English/Hindi/Kannada receipts and existing API/SQL access boundaries. The browser tool could not initialize, so the native print dialog still requires a manual visual check. See [the examples and amounts](fuel-hub.md#demo-vouchers-and-fuel-bills).
 
 Application commit `ec600cc4261f274edc809eb21db17ef8d8172fc0` from `codex/ui-redesign-warm-stone` was deployed to the existing `rigdesk-marketplace` project (`prj_2ocgTXt5uYQFnqW3COTpGRyR2LpD`, team `rig-logi-x`). Deployment `dpl_A7oapJDM64gfsyQj1sH1Xw8spW6o` was built with production settings and checked before promotion to [the existing live URL](https://rigdesk-marketplace-rig-logi-x.vercel.app/).

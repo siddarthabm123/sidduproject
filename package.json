@@ -9,7 +9,7 @@
     "preview": "vite preview",
     "hello": "tsx ./hello.ts",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "test": "node --import tsx --test tests/*.test.ts"
+    "test": "node --import tsx --test --test-concurrency=2 tests/*.test.ts"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.75.0",
