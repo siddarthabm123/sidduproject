@@ -1,5 +1,13 @@
 # Database and Deployment Runbook
 
+## Production Release, 15 November 2026
+
+Application commit `ec600cc4261f274edc809eb21db17ef8d8172fc0` from `codex/ui-redesign-warm-stone` was deployed to the existing `rigdesk-marketplace` project (`prj_2ocgTXt5uYQFnqW3COTpGRyR2LpD`, team `rig-logi-x`). Deployment `dpl_A7oapJDM64gfsyQj1sH1Xw8spW6o` was built with production settings and checked before promotion to [the existing live URL](https://rigdesk-marketplace-rig-logi-x.vercel.app/).
+
+Scope: Warm Stone interface, equipment photos, preserved quote pricing, public pitch highlights and differentiated workforce screens/API dispatch. Validation: 89 tests, TypeScript and the production build passed. Live entry/demo/pitch/customer workforce/owner workforce/equipment routes and three new photo assets returned 200; live JavaScript/CSS asset URLs match the staged build. Anonymous workforce/jobs/records and fuel requests returned 401; disabled escrow lock returned 503. Browser-tool initialization failed, so responsive visual/click-through checks remain outstanding. No live account, hire, booking or financial record was created by these probes.
+
+The additive `20261115001900_workforce_job_board.sql` update is **not installed in live Supabase** because no authenticated SQL/CLI session was available. Real-account job-board posting, applications and awards remain unavailable until it is applied and verified; existing workforce features and fictional demos remain distinct. No database reset, provider activation or payment transfer was performed. See [workforce setup](workforce-job-board.md).
+
 ## Notifications and Work Records Update
 
 Updates 019 (private notifications, date availability, per-account Places/Gemini quotas) and 020 (private daily work entries and customer review) are installed in the existing Supabase project. Pre/post checks preserved 2 user profiles, 0 bookings and 0 hires; no fictional production work record was inserted. All public tables retain RLS, and anonymous execution of the new work/quotas functions is denied. These checks establish schema and access boundaries, not a completed real customer/owner transaction.

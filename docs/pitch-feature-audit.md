@@ -45,7 +45,7 @@ The new public route is `/pitch-highlights`, with `#problem`, `#pillars` and `#b
 
 ## Hidden Gems Worth Explaining
 
-**Local update, 15 November 2026:** The new role-specific workforce job board adds customer headcount/salary requirements, owner job vacancies, managed crew applications, document-review eligibility and atomic crew awards into existing hiring records. These source changes and demo examples are local; the new SQL update is not installed in the live Supabase project. Independent worker sign-in remains planned. See [job board details](workforce-job-board.md).
+**Release update, 15 November 2026:** The new role-specific workforce job board adds customer headcount/salary requirements, owner job vacancies, managed crew applications, document-review eligibility and atomic crew awards into existing hiring records. Frontend/API source and demo examples are deployed; the new SQL update is not installed in the live Supabase project, so the real-account board remains unavailable. Independent worker sign-in remains planned. See [job board details](workforce-job-board.md).
 
 1. **The same job can need several owners.** Unit allocation and listing-specific quantities handle a genuine equipment-procurement complication.
 2. **Customers need not select the cheapest bid.** Rating, reviews and ETA sorting support a reasoned award, though demo reputation is not field validation.
@@ -83,4 +83,4 @@ node --import tsx --input-type=module -e "import {executiveSummary} from './pitc
 - TypeScript checking, all 80 automated tests and the Vite production build passed.
 - React server rendering confirmed all three slide panels and claim disclosures render. The local public route returned HTTP 200 without signing in.
 - Browser tools failed during initialization, so screenshot layout, mobile viewports, print pagination and the sample PDF download interaction have not received a visual or click-through pass.
-- This route is implemented locally. No production deployment or real payment/partner activation was performed in this task.
+- This route was subsequently deployed on 15 November 2026 in application commit `ec600cc`. The public production route returns 200. The release passed 89 automated tests, TypeScript checking and the production build; no real payment/partner activation or browser visual verification is claimed.

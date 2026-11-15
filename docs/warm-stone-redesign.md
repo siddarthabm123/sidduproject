@@ -36,4 +36,6 @@ Existing photo assets and supplied live inventory image URLs are preserved. Thei
 
 ## Verification boundaries
 
-Automated checks exercise contrast, image fallback/uniqueness and inclusive date presets. The quote calculation/submit functions and real workspace code before JSX were compared against pre-redesign snapshots and are unchanged except whitespace. Responsive CSS targets mobile and desktop with stacked filters and bounded modal scrolling. Browser tools currently fail during initialization, so a visual/click-through check at 375px and 1280px remains outstanding. No production deployment or database update is included in this redesign.
+Automated checks exercise contrast, image fallback/uniqueness and inclusive date presets. The quote calculation/submit functions and real workspace code before JSX were compared against pre-redesign snapshots and are unchanged except whitespace. Responsive CSS targets mobile and desktop with stacked filters and bounded modal scrolling. Browser tools currently fail during initialization, so a visual/click-through check at 375px and 1280px remains outstanding.
+
+Application commit `ec600cc` was deployed to [RigDesk production](https://rigdesk-marketplace-rig-logi-x.vercel.app/) on 15 November 2026 after 89 automated tests, TypeScript checking and a production build passed. The staged production build was checked before promotion; live routes, theme assets, photographs and API authentication/disabled-payment guards were verified after promotion. No database update or provider activation was performed in this release.

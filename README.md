@@ -20,9 +20,15 @@ Built for construction, agriculture, borewell drilling, logistics, and infrastru
 
 **UI redesign:** The Warm Stone / Deep Forest Slate / Terracotta branch updates theme, navigation, catalogue cards, photos, quote presentation and fleet surfaces while preserving booking calculations and APIs. [Design details, photo credits and verification limits](docs/warm-stone-redesign.md).
 
+### Production Release: 15 November 2026
+
+- Deployed application commit `ec600cc` to [RigDesk production](https://rigdesk-marketplace-rig-logi-x.vercel.app/), including the redesigned interface, [pitch highlights](https://rigdesk-marketplace-rig-logi-x.vercel.app/pitch-highlights) and role-specific workforce screens. Source: [`codex/ui-redesign-warm-stone`](https://github.com/siddarthabm123/sidduproject/tree/codex/ui-redesign-warm-stone).
+- **89 automated tests**, TypeScript checking and the production build passed. Live public routes/photos return 200 and match the staged build; private workforce/fuel endpoints reject anonymous requests with 401. Payments remain disabled with 503.
+- The new workforce job-board SQL update is **not installed in live Supabase**. Its real-account posting/application workflow remains unavailable until that additive update is applied; demo examples are available. Browser visual checks at 375px and 1280px remain outstanding because the browser tools could not initialize. See [release details](docs/deployment.md).
+
 ### Reliability Update: 18 October 2026
 
-- Latest verification: **77 automated tests**, TypeScript checking and production build passed; the production pnpm dependency audit reported **zero advisories**. Browser checks covered language/filter switching, notification navigation, local demo work submission/approval and hiring estimates. Real provider delivery and two-account production transactions remain launch gates, not claimed successes.
+- Verification on this date: **77 automated tests**, TypeScript checking and production build passed; the production pnpm dependency audit reported **zero advisories**. Browser checks covered language/filter switching, notification navigation, local demo work submission/approval and hiring estimates. Real provider delivery and two-account production transactions remain launch gates, not claimed successes.
 - Upgrade release: React-rendered English/Hindi/Kannada text replaces DOM mutation; translated dropdowns keep stable filter values. Equipment search now shares the standard navigation and notification inbox.
 - Private in-app notifications cover new bookings, completion requests, disputes, hiring offers and daily work reviews. Real-account read states are saved in Supabase; demo examples remain local. Notifications are polled, not SMS/email delivery.
 - The inbox explains each update and its next action. Demo hiring updates show the worker, current wage, negotiation side and latest activity time; accepted, declined, cancelled and expired requests use distinct messages. Shared modal styling loads on every dashboard, including a direct first visit.

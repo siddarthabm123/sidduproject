@@ -38,7 +38,7 @@ SELECT to_regprocedure('public.hire_worker(uuid,timestamptz,timestamptz,numeric,
 
 If the board tables/function are missing and workforce/profile/negotiation updates are installed, apply `supabase/migrations/20261115001900_workforce_job_board.sql` once. It adds two RLS-protected tables and four authenticated-only functions and preserves existing user/profile/hiring rows. Do not apply it blindly if those objects already exist. Record the update in deployment history and check anonymous execution is denied. Existing admin-review membership and the private `worker-documents` bucket are required. No authenticated database/CLI session is currently available in this local workspace, so live installation has not been performed.
 
-The new frontend is local and has not been deployed. Until the SQL update is installed, real job-board requests show an unavailable message; the older worker directory and hiring records remain separate and usable.
+The frontend and API dispatcher were deployed to [RigDesk production](https://rigdesk-marketplace-rig-logi-x.vercel.app/) on 15 November 2026 in application commit `ec600cc`. Until the SQL update is installed, real job-board requests show an unavailable message; the older worker directory and hiring records remain separate and usable. Deployment does not apply Supabase SQL automatically. Live anonymous job-board requests correctly return 401; this does not establish an authenticated end-to-end crew award.
 
 ## Demo and validation
 
