@@ -1,7 +1,9 @@
-export const bookingFeeRate=0.035;
 export function quoteLine(ratePaise:number,units:number,quantity:number){
-  if(!Number.isSafeInteger(ratePaise)||ratePaise<0||!Number.isInteger(units)||units<0||!Number.isFinite(quantity)||quantity<=0||quantity>10000)throw new Error('Invalid quote quantity');
-  const base=Math.round(ratePaise*units*quantity),fee=Math.round(base*bookingFeeRate);
+  const hundredths=Math.round(quantity*100);
+  if(!Number.isSafeInteger(ratePaise)||ratePaise<0||!Number.isInteger(units)||units<0||!Number.isFinite(quantity)||quantity<=0||quantity>10000||Math.abs(quantity*100-hundredths)>1e-7)throw new Error('Invalid quote quantity');
+  const raw=ratePaise*units*hundredths;
+  if(!Number.isSafeInteger(raw))throw new Error('Quote amount is too large');
+  const base=Math.round(raw/100),fee=Math.round(base*35/1000);
   if(!Number.isSafeInteger(base+fee))throw new Error('Quote amount is too large');
   return {base,fee,total:base+fee};
 }

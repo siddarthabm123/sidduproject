@@ -10,6 +10,8 @@ test('booking preview follows database paise rounding for every listing before a
   assert.deepEqual(quoteLine(10001,3,1.25),{base:37504,fee:1313,total:38817});
   // Rounding the multiplied gross directly gives a different result at this boundary.
   assert.deepEqual(quoteLine(101,1,0.15),{base:15,fee:1,total:16});
+  assert.deepEqual(quoteLine(50,1,0.29),{base:15,fee:1,total:16});
+  assert.throws(()=>quoteLine(100,1,1.005));
   for(const args of [[100,1,NaN],[100,1,-1],[100,1.5,2],[100.2,1,2],[100,1,10001]] as const)assert.throws(()=>quoteLine(args[0],args[1],args[2]));
 });
 test('work scope is stored as customer-requested instructions, within the existing database limit',()=>{
