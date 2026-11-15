@@ -22,6 +22,7 @@ Built for construction, agriculture, borewell drilling, logistics, and infrastru
 
 ### Production Release: 15 November 2026
 
+- The owner demo Fuel hub includes three active sample vouchers and three printable sample fuel bills showing original cost, partner discount and amount paid. A sample 1,220-litre purchase history demonstrates INR 820 saved; these fictional examples are separate from real accounts and potential savings on unused vouchers. See [fuel demo details](docs/fuel-hub.md).
 - Deployed application commit `ec600cc` to [RigDesk production](https://rigdesk-marketplace-rig-logi-x.vercel.app/), including the redesigned interface, [pitch highlights](https://rigdesk-marketplace-rig-logi-x.vercel.app/pitch-highlights) and role-specific workforce screens. Source: [`codex/ui-redesign-warm-stone`](https://github.com/siddarthabm123/sidduproject/tree/codex/ui-redesign-warm-stone).
 - **89 automated tests**, TypeScript checking and the production build passed. Live public routes/photos return 200 and match the staged build; private workforce/fuel endpoints reject anonymous requests with 401. Payments remain disabled with 503.
 - The new workforce job-board SQL update is **not installed in live Supabase**. Its real-account posting/application workflow remains unavailable until that additive update is applied; demo examples are available. Browser visual checks at 375px and 1280px remain outstanding because the browser tools could not initialize. See [release details](docs/deployment.md).

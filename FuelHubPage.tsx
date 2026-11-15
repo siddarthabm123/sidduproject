@@ -6,7 +6,9 @@ import QRCode from 'qrcode';
 import FuelBunkMap, { FuelBrand } from './FuelBunkMap';
 import { FuelModal } from './fuel/FuelModal';
 import { fuelRequest } from './fuel/client';
-import { demoBunks, demoContext } from './fuel/demo';
+import { demoBunks, demoContext, demoFuelBills, demoVouchers } from './fuel/demo';
+import type { DemoFuelBill } from './fuel/demo';
+import DemoFuelBills, { FuelBillDetails } from './fuel/DemoFuelBills';
 import { effectiveStatus, nearbyBunks, radii, rupees, savings, validQuantity } from './fuel/domain';
 import { fuelText } from './fuel/labels';
 import type { FuelLanguage } from './fuel/labels';
@@ -17,7 +19,7 @@ const fallback:FuelCenter={id:'default',label:'Map center',latitude:12.97,longit
 const emptyContext:FuelContext={can_register:false,can_offer_discounts:false,can_generate:false,equipment:[],centers:[]};
 const demoKey='rigdesk-fuel-demo-vouchers-v1';
 function savedDemoVouchers():FuelVoucher[]{
-  try{const parsed=JSON.parse(localStorage.getItem(demoKey)||'[]');return Array.isArray(parsed)?parsed.filter(v=>v?.demo===true&&typeof v.id==='string'&&typeof v.expires_at==='string'&&Number.isFinite(v.quantity_litres)&&Number.isFinite(v.discount_rate)).slice(0,100):[]}catch{return []}
+  try{const parsed=JSON.parse(localStorage.getItem(demoKey)||'[]');return demoVouchers(Array.isArray(parsed)?parsed.filter(v=>v?.demo===true&&typeof v.id==='string'&&typeof v.expires_at==='string'&&Number.isFinite(v.quantity_litres)&&Number.isFinite(v.discount_rate)).slice(0,100):[])}catch{return demoVouchers()}
 }
 export function voucherLink(v:FuelVoucher):string {
   const url=new URL(`/fuel/voucher/${encodeURIComponent(v.id)}`,window.location.origin);
@@ -40,18 +42,23 @@ export default function FuelHubPage({demo,language}:{demo:boolean;language:FuelL
   const [generate,setGenerate]=useState<FuelBunk|null>(null);const [quantity,setQuantity]=useState('100');const [equipment,setEquipment]=useState('');
   const [busy,setBusy]=useState(false);const [formError,setFormError]=useState('');const [gpsBusy,setGpsBusy]=useState(false);
   const [qrImages,setQrImages]=useState<Record<string,string>>({});const [printVoucher,setPrintVoucher]=useState<FuelVoucher|null>(null);
+  const [bills]=useState(()=>demo?demoFuelBills():[]);
+  const [printBill,setPrintBill]=useState<DemoFuelBill|null>(null);
   const printSheet=useRef<HTMLElement|null>(null);
   useEffect(()=>{
-    if(!printVoucher)return;
+    if(!printVoucher&&!printBill)return;
     let cancelled=false;
-    const finished=()=>setPrintVoucher(null);
+    const finished=()=>{setPrintVoucher(null);setPrintBill(null)};
     window.addEventListener('afterprint',finished);
     const image=printSheet.current?.querySelector('img');
-    void (image?.decode()??Promise.reject(new Error('QR unavailable'))).then(()=>{
+    void (printBill?Promise.resolve():image?.decode()??Promise.reject(new Error('QR unavailable'))).then(()=>{
       if(!cancelled)window.print();
-    }).catch(()=>{if(!cancelled){setError('Unable to prepare voucher for printing. Please try again.');setPrintVoucher(null)}});
+    }).catch(()=>{if(!cancelled){setError('Unable to prepare voucher for printing. Please try again.');finished()}});
     return()=>{cancelled=true;window.removeEventListener('afterprint',finished)};
-  },[printVoucher]);
+  },[printVoucher,printBill]);
+  useEffect(()=>{
+    if(demo)try{localStorage.setItem(demoKey,JSON.stringify(vouchers))}catch{/* Samples remain available when browser storage is disabled. */}
+  },[demo,vouchers]);
   const [clock,setClock]=useState(Date.now());const request=useRef<{payload:string;id:string}|null>(null);
   const generating=useRef(false);const mounted=useRef(true);
   useEffect(()=>{mounted.current=true;return()=>{mounted.current=false}},[]);
@@ -128,7 +135,7 @@ export default function FuelHubPage({demo,language}:{demo:boolean;language:FuelL
     if(!navigator.geolocation){failed();return}
     navigator.geolocation.getCurrentPosition(position=>{if(mounted.current){setCenter({id:'gps',label:'GPS',latitude:position.coords.latitude,longitude:position.coords.longitude});setGpsBusy(false);setSelected(null)}},failed,{timeout:12000,maximumAge:60000,enableHighAccuracy:true});
   };
-  const print=(voucher:FuelVoucher)=>{setPrintVoucher(voucher)};
+  const print=(voucher:FuelVoucher)=>{setPrintBill(null);setPrintVoucher(voucher)};
   return <div className="fuel-hub" data-localized>
     <div className="fuel-page-heading"><div><span className="fuel-eyebrow">RIGDESK / {t('Fuel hub')}</span><h1>{t('Fuel Bunks & Partner Discounts')}</h1></div>
       <button className="fuel-icon" title={t('Refresh')} aria-label={t('Refresh')} onClick={()=>setRefresh(n=>n+1)}><RefreshCw size={19}/></button></div>
@@ -165,6 +172,7 @@ export default function FuelHubPage({demo,language}:{demo:boolean;language:FuelL
         <button className="fuel-button secondary" disabled={!qrImages[v.id]} onClick={()=>print(v)}><Printer size={16}/>{t('Print voucher')}</button>
       </article>)}</div>}
     </section>
+    {demo&&<DemoFuelBills bills={bills} language={language} onPrint={bill=>{setPrintVoucher(null);setPrintBill(bill)}}/>}
     {generate&&<FuelModal title={t('Generate Discount Voucher')} onClose={()=>setGenerate(null)} busy={busy}><form onSubmit={saveVoucher}>
       <div className="fuel-dialog-body"><strong>{generate.name}</strong><p>{t('Save')} {rupees(generate.discount_per_litre)} {t('per litre')} · {t(fuel==='diesel'?'Diesel':'Petrol')}</p>
         {demo&&<p className="fuel-demo-stamp">{t('Demo voucher - not valid at a pump')}</p>}
@@ -189,5 +197,6 @@ export default function FuelHubPage({demo,language}:{demo:boolean;language:FuelL
       <img src={qrImages[printVoucher.id]} width="240" height="240" alt={t('Verify voucher')}/><code>{printVoucher.voucher_code}</code><h3>{printVoucher.bunk_name}</h3><p>{printVoucher.bunk_address}</p>
       <p>{t(printVoucher.fuel_type==='DIESEL'?'Diesel':'Petrol')}: {printVoucher.quantity_litres} L</p><p>{t('Save')} {rupees(printVoucher.discount_rate)}/L</p><strong>{t('Estimated savings')}: {rupees(printVoucher.estimated_savings)}</strong><p>{t('Expires')}: {new Date(printVoucher.expires_at).toLocaleString()}</p>
     </section>,document.body)}
+    {printBill&&createPortal(<section ref={printSheet} className="fuel-print-sheet" data-localized><h1>RigDesk</h1><h2>{t('Fuel purchase example')}</h2><FuelBillDetails bill={printBill} language={language}/></section>,document.body)}
   </div>;
 }

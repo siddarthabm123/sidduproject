@@ -2,6 +2,8 @@
 
 ## Production Release, 15 November 2026
 
+Fuel demo follow-up: the owner Fuel hub now includes three preloaded active vouchers and three printable fictional receipts with reconciled before-discount, savings and paid totals. Sample purchase history is browser-only; no production database update is required. Fuel checks cover expiry/reload behavior, voucher limits, money rounding, English/Hindi/Kannada receipts and existing API/SQL access boundaries. The browser tool could not initialize, so the native print dialog still requires a manual visual check. See [the examples and amounts](fuel-hub.md#demo-vouchers-and-fuel-bills).
+
 Application commit `ec600cc4261f274edc809eb21db17ef8d8172fc0` from `codex/ui-redesign-warm-stone` was deployed to the existing `rigdesk-marketplace` project (`prj_2ocgTXt5uYQFnqW3COTpGRyR2LpD`, team `rig-logi-x`). Deployment `dpl_A7oapJDM64gfsyQj1sH1Xw8spW6o` was built with production settings and checked before promotion to [the existing live URL](https://rigdesk-marketplace-rig-logi-x.vercel.app/).
 
 Scope: Warm Stone interface, equipment photos, preserved quote pricing, public pitch highlights and differentiated workforce screens/API dispatch. Validation: 89 tests, TypeScript and the production build passed. Live entry/demo/pitch/customer workforce/owner workforce/equipment routes and three new photo assets returned 200; live JavaScript/CSS asset URLs match the staged build. Anonymous workforce/jobs/records and fuel requests returned 401; disabled escrow lock returned 503. Browser-tool initialization failed, so responsive visual/click-through checks remain outstanding. No live account, hire, booking or financial record was created by these probes.

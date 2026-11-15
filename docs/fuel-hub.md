@@ -7,6 +7,12 @@ QR verification route: `/fuel/voucher/:id?token=<random-uuid>`.
 
 The demo uses fictional Bengaluru stations with clearly labelled, non-redeemable vouchers. Real sessions use Supabase records only; an empty database produces an empty station list, not invented partnerships. GPS is requested only when the owner presses **Use GPS**. Saved centers come from the owner's equipment locations and accepted active booking sites. Distances are straight-line Haversine distances, not road routes or proof of operating hours/fuel stock.
 
+## Demo vouchers and fuel bills
+
+The owner demo starts with three active sample vouchers for diesel/petrol at INR 0.50-1 per litre. Examples use a 24-hour expiry, preserve valid vouchers on reload and renew expired sample fixtures on the next visit; owner-created demo vouchers are retained. Existing active voucher limits still apply. QR links use the existing non-redeemable demo verification view, and **Print voucher** uses the existing print sheet.
+
+Three printable sample fuel receipts explain redemption: 300 L diesel at INR 92.50/L with INR 300 discount, 800 L diesel at INR 92.50/L with INR 400 discount, and 120 L petrol at INR 102/L with INR 120 discount. The summary reconciles 1,220 L, INR 113,990 before discount, INR 820 saved and INR 113,170 paid. These are illustrative prices and purchases, not live rates, real payments or tax invoices. Unused active vouchers are excluded from completed-purchase savings. English, Hindi and Kannada labels are provided. These examples never insert Supabase rows or appear in real-account bills.
+
 ## Setup
 
 Apply `supabase/migrations/20261012001200_fuel_hub.sql` after the repository's core/auth migrations that create `users`, `equipment`, `bookings` and `app_private`. Configure `SUPABASE_URL` and `SUPABASE_ANON_KEY` for server requests. Frontend Supabase configuration is unchanged. No new paid map key or PostGIS extension is required.
