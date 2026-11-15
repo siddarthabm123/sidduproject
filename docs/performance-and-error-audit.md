@@ -49,3 +49,7 @@ The render audit uses isolated React server rendering with browser-storage fixtu
 7. **Validation scope:** this pass reproduced eight specific failures; it cannot prove that every possible account state, browser or external failure is error-free. Existing record access/RLS and financial tests pass in isolated fixtures; production concurrent workflows remain separate acceptance work.
 
 The source changes are reversible. No malformed-cache recovery routine silently deletes stored history, and no database reset or financial transfer is part of this release.
+
+## Release result
+
+Application commit `798e7055ce5445612f7cd7eb68258e995b258819` was pushed and deployed to [RigDesk production](https://rigdesk-marketplace-rig-logi-x.vercel.app/). Deployment `dpl_66TDWaNrfA4uAUG4mvkQAscnJvVZ` passed 48 staged and 48 live HTTP checks, with identical entry asset names before/after promotion. Hashed assets use immutable caching; live HTML requests revalidate. Existing API access guards remain active. See [deployment history](deployment.md) for scope and limitations.

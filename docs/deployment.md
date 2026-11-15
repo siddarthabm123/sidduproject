@@ -1,5 +1,13 @@
 # Database and Deployment Runbook
 
+## Error Recovery and Loading Release, 15 November 2026
+
+Application commit `798e7055ce5445612f7cd7eb68258e995b258819` from `codex/ui-redesign-warm-stone` is deployed as `dpl_66TDWaNrfA4uAUG4mvkQAscnJvVZ` to the existing RigDesk project `prj_2ocgTXt5uYQFnqW3COTpGRyR2LpD` in team `rig-logi-x`. The staged production build was Ready and passed checks before promotion to [the live website](https://rigdesk-marketplace-rig-logi-x.vercel.app/). Source is pushed to GitHub.
+
+Verification: 100 tests, TypeScript checking, production build, 182 isolated page/modal/slide renders and the entry-bundle audit pass. Eight reproducible old-cache render failures were fixed. Initial local-build JavaScript fell 37.6% (gzip 38.4%); account/map code now loads on demand. All 48 staged and 48 live HTTP checks passed: 25 page routes, entry and referenced lazy assets, discovery/workforce/fuel anonymous rejection (401), and disabled escrow (503). The live JavaScript/CSS filenames match the tested staged build. Hashed entry assets have immutable caching; HTML is revalidated (root `no-cache`, fallback observed `max-age=0, must-revalidate` after promotion).
+
+These HTTP/render checks do not establish complete browser interaction or live two-account success. The browser runtime failed to initialize; native print, GPS, visual/mobile layout, full transactions and actual device load times remain acceptance work. The workforce-board database update and external provider configuration remain pending. No production SQL, credentials, pricing or financial records were changed. See [findings and remaining improvements](performance-and-error-audit.md).
+
 ## Production Release, 15 November 2026
 
 Practical upgrade follow-up: supplier menus and official-source contacts; authenticated, on-demand Google contact lookup; device-scoped saved equipment/comparison; per-listing quote rounding and requested work scope; owner booking reports/CSV/cost planning; and public readiness/privacy/terms pages. This code uses existing database flows and requires no new database update itself. The earlier workforce-board update is still pending. Production has no Places API key, so nearby Google lookup remains disabled until configured; published business contacts remain available. All 96 tests and TypeScript checks passed. See [completed work and owner actions](upgrade-completion.md).
