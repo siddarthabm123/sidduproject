@@ -50,6 +50,7 @@ export default defineConfig({
     dedupe: ['react', 'react-dom'],
   },
   root: path.resolve(import.meta.dirname),
+  optimizeDeps:{entries:['index.html']},
   build: {
     outDir: path.resolve(import.meta.dirname, 'dist/public'),
     emptyOutDir: true,
@@ -69,6 +70,7 @@ export default defineConfig({
     port,
     strictPort: true,
     host: '127.0.0.1',
+    watch:{ignored:['**/output/**','**/dist/**','**/RigLogix-source-code/**','**/RigLogix-runnable/**']},
     fs: {
       strict: true,
     },

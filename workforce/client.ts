@@ -1,9 +1,10 @@
 import { supabase } from '../supabase';
+import {timedFetch} from '../request-timeout';
 import { documentFileSchema, documentSignature } from './validation';
 export async function workerRequest<T>(route:string,body?:unknown,signal?:AbortSignal):Promise<T>{
   if(!supabase)throw new Error('Workforce service is unavailable. Check database setup.');
   const {data,error}=await supabase.auth.getSession();if(error||!data.session)throw new Error('Authentication required');
-  const response=await fetch(`/api/v1/workers/${route}`,{method:body===undefined?'GET':'POST',headers:{Authorization:`Bearer ${data.session.access_token}`,...(body===undefined?{}:{'Content-Type':'application/json'})},body:body===undefined?undefined:JSON.stringify(body),signal});
+  const response=await timedFetch(`/api/v1/workers/${route}`,{method:body===undefined?'GET':'POST',headers:{Authorization:`Bearer ${data.session.access_token}`,...(body===undefined?{}:{'Content-Type':'application/json'})},body:body===undefined?undefined:JSON.stringify(body),signal});
   const result=await response.json().catch(()=>({error:'Workforce service is unavailable. Check database setup.'}));
   if(!response.ok)throw new Error(result.error||'Workforce service is unavailable. Check database setup.');return result;
 }

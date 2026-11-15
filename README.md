@@ -385,3 +385,7 @@ The new backend layer uses `payment_escrows` linked to bookings, row-locked Post
 
 The escrow schema is installed in the existing production database; payment collection and payouts remain disabled. For a new environment, apply `supabase/migrations/20261012001100_payment_escrow.sql` after its prerequisites, and apply `20261017001400_explicit_rpc_permissions.sql` after the feature schemas. No production funds have been moved. For endpoint examples, accounting units, provider onboarding, worker scheduling, tests and rollout prerequisites, read [docs/payments.md](docs/payments.md).
 - Fuel voucher printing now isolates the voucher from the dashboard and waits for the QR image, fixing blank printouts.
+
+## Error recovery and performance audit — 15 November 2026
+
+The latest pass fixes eight reproduced failures caused by malformed cached demo lists. All 100 automated tests, TypeScript checking, the production build and 182 isolated route/modal/slide renders pass. Entry JavaScript decreased from 1,129,330 to 705,129 bytes (37.6%); maps and the account SDK now load on demand. These are bundle measurements, not a browser load-time guarantee. See [the findings, fixes and remaining checks](docs/performance-and-error-audit.md).

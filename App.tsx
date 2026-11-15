@@ -1,21 +1,23 @@
 import { lazy, Suspense, useEffect, useRef, useState } from 'react';
+import { parseCachedValue } from './cache-guards';
+import {timedFetch} from './request-timeout';
 import type { ButtonHTMLAttributes, FormEvent, ReactNode } from 'react';
 import { Link, Route, Switch, useLocation } from 'wouter';
-import L from 'leaflet';
-import 'leaflet/dist/leaflet.css';
-import { isSupabaseConfigured, supabaseConnectionLabel } from './supabase';
-import RealWorkspace from './RealWorkspace';
+import type L from 'leaflet';
+import { isSupabaseConfigured, supabaseConnectionLabel } from './supabase-config';
+const RealWorkspace=lazy(()=>import('./RealWorkspace'));
 import EquipmentPhoto from './EquipmentPhoto';
 import EquipmentComparison from './EquipmentComparison';
 import { SaveEquipmentButton, useEquipmentShortlist } from './EquipmentShortlist';
-import OwnerOperations from './OwnerOperations';
+const OwnerOperations=lazy(()=>import('./OwnerOperations'));
 import { upgradeText } from './upgrades/labels';
 import type { OperationsJob } from './upgrades/tools';
 const SupplierDirectory=lazy(()=>import('./SupplierDirectory'));
 const PlatformGuide=lazy(()=>import('./PlatformGuide'));
-import NotificationInbox from './NotificationInbox';
+const NotificationInbox=lazy(()=>import('./NotificationInbox'));
 import ConnectionStatus from './ConnectionStatus';
-import JobSheet from './JobSheet';
+import JobSheet from './LazyJobSheet';
+import RouteLoading from './RouteLoading';
 import { accountPreferences } from './account-preferences';
 const AdminWorkspace=lazy(()=>import('./AdminWorkspace'));
 const PitchHighlights=lazy(()=>import('./PitchHighlights'));
@@ -30,7 +32,7 @@ import WorkforceSection from './WorkforceSection';
 import { workforceDestination, workforcePath, workerProfilePath } from './workforce/routes';
 import { LocalizationProvider, UiText, useUiText } from './localization';
 import { etaMinutes } from './marketplace-domain';
-import { getCurrentProfile, getCurrentAdminAccess, loadCurrentAppState, markAadhaarReferenceVerified, saveCurrentAppStateValue, sendEmailSignupOtp, sendPhoneOtp, setCurrentPassword, signInWithPassword, signOutSupabase, signUpWithProfile, updateCurrentProfile, verifyEmailSignupOtp, verifyPhoneOtp } from './riglogix-data';
+import { getCurrentProfile, getCurrentAdminAccess, loadCurrentAppState, markAadhaarReferenceVerified, saveCurrentAppStateValue, sendEmailSignupOtp, sendPhoneOtp, setCurrentPassword, signInWithPassword, signOutSupabase, signUpWithProfile, updateCurrentProfile, verifyEmailSignupOtp, verifyPhoneOtp } from './lazy-account-data';
 import {
   ArrowRight, BarChart3, Bell, Box, Check, ChevronRight, CircleHelp, Download,
   Compass, CreditCard, Edit3, ExternalLink, Fuel, Gauge, Hammer, House, LocateFixed,
@@ -117,7 +119,7 @@ const storage = {
   set(key:string,value:unknown) { try { window.localStorage?.setItem(key, JSON.stringify(value)); } catch { /* storage can be blocked in some browser contexts */ } },
   remove(key:string) { try { window.localStorage?.removeItem(key); } catch { /* storage can be blocked in some browser contexts */ } },
 };
-function read<T>(key:string, fallback:T):T { try { const v=storage.get(key); return v ? JSON.parse(v) : fallback; } catch { storage.remove(key); return fallback; } }
+function read<T>(key:string, fallback:T):T { return parseCachedValue(storage.get(key),fallback,key); }
 function write(key:string, value:unknown) {
   storage.set(key,value);
   const session=read<AccountSession|null>('riglogix-session',null);
@@ -209,7 +211,9 @@ function loadGoogleMaps() {
   if (googleMapsPromise) return googleMapsPromise;
   googleMapsPromise = new Promise(resolve => {
     const callbackName = `riglogixMapsReady${Date.now()}`;
+    const timeout=window.setTimeout(()=>resolve(null),12000);
     (window as any)[callbackName] = () => {
+      window.clearTimeout(timeout);
       const maps = (window as any).google?.maps as GoogleMapRuntime | undefined;
       delete (window as any)[callbackName];
       resolve(maps || null);
@@ -217,7 +221,7 @@ function loadGoogleMaps() {
     const script = document.createElement('script');
     script.src = `https://maps.googleapis.com/maps/api/js?key=${googleMapsApiKey}&callback=${callbackName}`;
     script.async = true;
-    script.onerror = () => resolve(null);
+    script.onerror = () => {window.clearTimeout(timeout);resolve(null)};
     document.head.appendChild(script);
   });
   return googleMapsPromise;
@@ -258,7 +262,7 @@ function SafeSiteMapPicker({lat,lng,onPick,onAddress}:{lat:number;lng:number;onP
       address=await new Promise(resolve=>geocoderRef.current?.geocode({location:{lat:nextLat,lng:nextLng}},(results,status)=>resolve(status==='OK'&&results?.[0]?.formatted_address?results[0].formatted_address:'')));
     } else {
       try {
-        const response=await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${nextLat}&lon=${nextLng}&zoom=18&addressdetails=1`,{headers:{'Accept-Language':'en'}});
+        const response=await timedFetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${nextLat}&lon=${nextLng}&zoom=18&addressdetails=1`,{headers:{'Accept-Language':'en'}});
         if(response.ok){const data=await response.json() as {display_name?:string};address=data.display_name||''}
       } catch { address=''; }
     }
@@ -286,6 +290,8 @@ function SafeSiteMapPicker({lat,lng,onPick,onAddress}:{lat:number;lng:number;onP
         resolveAddress(lat,lng);
       });
     } else {
+      void import('./leaflet-runtime').then(({default:L})=>{
+        if(cancelled||!mapRef.current)return;
       const map=L.map(mapRef.current,{zoomControl:true,attributionControl:true}).setView([lat,lng],16);
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'&copy; OpenStreetMap contributors'}).addTo(map);
       const marker=L.marker([lat,lng],{draggable:true,icon:L.divIcon({className:'riglogix-leaflet-pin',html:'<span></span>',iconSize:[34,42],iconAnchor:[17,40]})}).addTo(map);
@@ -296,6 +302,7 @@ function SafeSiteMapPicker({lat,lng,onPick,onAddress}:{lat:number;lng:number;onP
       setMapState('ready');
       resolveAddress(lat,lng);
       setTimeout(()=>map.invalidateSize(),0);
+      }).catch(()=>{if(!cancelled)setMapState('error')});
     }
     return()=>{cancelled=true;googleMarkerRef.current?.setMap(null);googleMarkerRef.current=null;googleMapRef.current=null;geocoderRef.current=null;leafletMapRef.current?.remove();leafletMapRef.current=null;leafletMarkerRef.current=null};
   },[]);
@@ -328,6 +335,8 @@ function LiveVehicleMap({center,points,onSelect,height='520px'}:{center:{lat:num
         setState('ready');
       });
     } else {
+      void import('./leaflet-runtime').then(({default:L})=>{
+        if(cancelled||!mapRef.current)return;
       leafletMap=L.map(mapRef.current,{zoomControl:true,attributionControl:true}).setView([center.lat,center.lng],11);
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'&copy; OpenStreetMap contributors'}).addTo(leafletMap);
       const allBounds:L.LatLngExpression[]=[[center.lat,center.lng]];
@@ -336,6 +345,7 @@ function LiveVehicleMap({center,points,onSelect,height='520px'}:{center:{lat:num
       if(points.length)leafletMap.fitBounds(L.latLngBounds(allBounds),{padding:[50,50],maxZoom:13});
       setState('ready');
       setTimeout(()=>leafletMap?.invalidateSize(),0);
+      }).catch(()=>{if(!cancelled)setState('error')});
     }
     return()=>{cancelled=true;googleMarkers.forEach(marker=>marker.setMap(null));leafletMap?.remove()};
   },[center.lat,center.lng,pointKey]);
@@ -357,7 +367,7 @@ function AppShell({role,children}:{role:Role;children:ReactNode}) { const uiT=us
   useEffect(()=>{document.documentElement.lang=language},[language]);
   useEffect(()=>{document.documentElement.dataset.theme=theme},[theme]);
   const signOut=()=>{void signOutSupabase();storage.remove(keyFor('session'));setLocation('/sign-in');};
-  return <div className="grain app-shell flex"><aside className={`fixed inset-y-0 left-0 z-30 flex w-[260px] flex-col overflow-y-auto overscroll-contain bg-[#18303a] p-5 text-[#f6f3ea] transition-transform md:static md:translate-x-0 ${mobile?'translate-x-0':'-translate-x-full'}`}><div className="mb-10 flex items-center justify-between"><Logo light/><button aria-label={uiT("Close navigation")} className="text-[#a5b6b6] md:hidden" onClick={()=>setMobile(false)}><X size={20}/></button></div><div className="mb-7 rounded-2xl border border-[#36505a] bg-[#203e48] p-3"><div className="flex items-center gap-3"><div className="grid h-9 w-9 place-items-center rounded-full bg-[#f6b73c] font-bold text-[#18303a]">{initials(profile.name)}</div><div><p className="text-sm font-bold">{profile.name}</p><p className="text-[11px] text-[#9cb0b0]">{copy.role}</p></div></div></div><nav className="space-y-1">{nav.map(([href,label,Icon])=><Link key={href as string} href={href as string} onClick={()=>setMobile(false)} className={`flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-semibold transition-colors ${(location===href||(href===workforcePath(role)&&location===workerProfilePath))?'bg-[#f6b73c] text-[#18303a]':'text-[#afc0c0] hover:bg-[#264752] hover:text-[#f6f3ea]'}`} data-testid={`link-nav-${label}`}><Icon size={17}/><UiText text={label as string}/></Link>)}</nav><div className="mt-auto space-y-1 border-t border-[#36505a] pt-4"><label className="block px-3 py-2 text-[10px] font-bold uppercase tracking-wide text-[#9cb0b0]" data-localized>{preferences.language}<select value={language} onChange={e=>chooseLanguage(e.target.value as AppLanguage)} className="mt-1 w-full rounded-lg border border-[#527078] bg-[#203e48] p-2 text-xs font-bold text-[#f6f3ea]"><option value="en">English</option><option value="hi">Hindi</option><option value="kn">Kannada</option></select></label><label className="block px-3 py-2 text-[10px] font-bold uppercase tracking-wide text-[#9cb0b0]" data-localized>{preferences.theme}<select value={theme} onChange={e=>chooseTheme(e.target.value as AppTheme)} className="mt-1 w-full rounded-lg border border-[#527078] bg-[#203e48] p-2 text-xs font-bold text-[#f6f3ea]"><option value="light">{preferences.light}</option><option value="dark">{preferences.dark}</option></select></label><Link href="/account" className="flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-semibold text-[#afc0c0] hover:bg-[#264752]" data-testid="link-nav-account"><Settings2 size={17}/>{copy.account}</Link><button onClick={signOut} className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left text-sm font-semibold text-[#afc0c0] hover:bg-[#264752]" data-testid="button-sign-out"><LogOut size={17}/>{copy.signOut}</button></div></aside><main className="min-w-0 flex-1"><header className="sticky top-0 z-20 flex h-[72px] items-center justify-between border-b border-[#ded9ca] bg-[#f6f3ea]/95 px-5 backdrop-blur md:px-9"><div className="flex items-center gap-3"><button aria-label={uiT("Open navigation")} className="text-[#18303a] md:hidden" onClick={()=>setMobile(true)}><Menu size={22}/></button><div className="hidden items-center gap-2 text-sm text-[#68777b] md:flex"><span className="h-2 w-2 rounded-full bg-[#2caa87]"></span>{copy.live} <span className="text-[#b2ada0]"><UiText text={"/"}/></span> {profile.workspace}</div></div><div className="flex items-center gap-3"><NotificationInbox key={profile.userId||profile.loginId} userId={profile.userId} demo={profile.loginId.endsWith('.demo')} role={role}/><Link href="/account" className="hidden text-right sm:block"><p className="text-xs font-bold">{profile.name}</p><p className="text-[10px] text-[#68777b]">{profile.serviceArea||'Service area not set'}</p></Link></div></header><div className="mx-auto max-w-[1440px] p-5 md:p-9">{children}</div></main></div>;
+  return <div className="grain app-shell flex"><aside className={`fixed inset-y-0 left-0 z-30 flex w-[260px] flex-col overflow-y-auto overscroll-contain bg-[#18303a] p-5 text-[#f6f3ea] transition-transform md:static md:translate-x-0 ${mobile?'translate-x-0':'-translate-x-full'}`}><div className="mb-10 flex items-center justify-between"><Logo light/><button aria-label={uiT("Close navigation")} className="text-[#a5b6b6] md:hidden" onClick={()=>setMobile(false)}><X size={20}/></button></div><div className="mb-7 rounded-2xl border border-[#36505a] bg-[#203e48] p-3"><div className="flex items-center gap-3"><div className="grid h-9 w-9 place-items-center rounded-full bg-[#f6b73c] font-bold text-[#18303a]">{initials(profile.name)}</div><div><p className="text-sm font-bold">{profile.name}</p><p className="text-[11px] text-[#9cb0b0]">{copy.role}</p></div></div></div><nav className="space-y-1">{nav.map(([href,label,Icon])=><Link key={href as string} href={href as string} onClick={()=>setMobile(false)} className={`flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-semibold transition-colors ${(location===href||(href===workforcePath(role)&&location===workerProfilePath))?'bg-[#f6b73c] text-[#18303a]':'text-[#afc0c0] hover:bg-[#264752] hover:text-[#f6f3ea]'}`} data-testid={`link-nav-${label}`}><Icon size={17}/><UiText text={label as string}/></Link>)}</nav><div className="mt-auto space-y-1 border-t border-[#36505a] pt-4"><label className="block px-3 py-2 text-[10px] font-bold uppercase tracking-wide text-[#9cb0b0]" data-localized>{preferences.language}<select value={language} onChange={e=>chooseLanguage(e.target.value as AppLanguage)} className="mt-1 w-full rounded-lg border border-[#527078] bg-[#203e48] p-2 text-xs font-bold text-[#f6f3ea]"><option value="en">English</option><option value="hi">Hindi</option><option value="kn">Kannada</option></select></label><label className="block px-3 py-2 text-[10px] font-bold uppercase tracking-wide text-[#9cb0b0]" data-localized>{preferences.theme}<select value={theme} onChange={e=>chooseTheme(e.target.value as AppTheme)} className="mt-1 w-full rounded-lg border border-[#527078] bg-[#203e48] p-2 text-xs font-bold text-[#f6f3ea]"><option value="light">{preferences.light}</option><option value="dark">{preferences.dark}</option></select></label><Link href="/account" className="flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-semibold text-[#afc0c0] hover:bg-[#264752]" data-testid="link-nav-account"><Settings2 size={17}/>{copy.account}</Link><button onClick={signOut} className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left text-sm font-semibold text-[#afc0c0] hover:bg-[#264752]" data-testid="button-sign-out"><LogOut size={17}/>{copy.signOut}</button></div></aside><main className="min-w-0 flex-1"><header className="sticky top-0 z-20 flex h-[72px] items-center justify-between border-b border-[#ded9ca] bg-[#f6f3ea]/95 px-5 backdrop-blur md:px-9"><div className="flex items-center gap-3"><button aria-label={uiT("Open navigation")} className="text-[#18303a] md:hidden" onClick={()=>setMobile(true)}><Menu size={22}/></button><div className="hidden items-center gap-2 text-sm text-[#68777b] md:flex"><span className="h-2 w-2 rounded-full bg-[#2caa87]"></span>{copy.live} <span className="text-[#b2ada0]"><UiText text={"/"}/></span> {profile.workspace}</div></div><div className="flex items-center gap-3"><Suspense fallback={<button className="notification-trigger" disabled aria-label={uiT('Loading notifications...')}><Bell size={18}/></button>}><NotificationInbox key={profile.userId||profile.loginId} userId={profile.userId} demo={profile.loginId.endsWith('.demo')} role={role}/></Suspense><Link href="/account" className="hidden text-right sm:block"><p className="text-xs font-bold">{profile.name}</p><p className="text-[10px] text-[#68777b]">{profile.serviceArea||'Service area not set'}</p></Link></div></header><div className="mx-auto max-w-[1440px] p-5 md:p-9">{children}</div></main></div>;
 }
 
 function Landing() {
@@ -905,7 +915,7 @@ function RouterLive() {
   if(location==='/phone-sign-in') return <PhoneSignIn/>;
   if(location==='/email-register') return <AccountSetup/>;
   if(location==='/email-sign-in') return <AccountSetup/>;
-  return <Switch key={location}><Route path="/" component={Landing}/><Route path="/sign-in" component={SignIn}/><Route path="/verify/:bookingId" component={VerifyBondPage}/><Route path="/customer/dashboard">{()=>session?.role==='customer'?<CustomerDashboard/>:<Redirect/>}</Route><Route path="/customer/machinery">{()=>session?.role==='customer'?<MachineryPageStable/>:<Redirect/>}</Route><Route path="/customer/auctions">{()=>session?.role==='customer'?<AuctionsPage/>:<Redirect/>}</Route><Route path="/customer/radar">{()=>session?.role==='customer'?<RadarPageLive/>:<Redirect/>}</Route><Route path="/customer/bookings">{()=>session?.role==='customer'?<BookingsPage/>:<Redirect/>}</Route><Route path="/owner/dashboard">{()=>session?.role==='owner'?<OwnerDashboard/>:<Redirect/>}</Route><Route path="/owner/fleet">{()=>session?.role==='owner'?<FleetPage/>:<Redirect/>}</Route><Route path="/owner/equipment-radar">{()=>session?.role==='owner'?<OwnerEquipmentRadarLive/>:<Redirect/>}</Route><Route path="/owner/operations">{()=>session?.role==='owner'?<AppShell role="owner"><OwnerOperations jobs={demoOperationsJobs()} language={languageFor('owner')} demo/></AppShell>:<Redirect/>}</Route><Route path="/owner/jobs">{()=>session?.role==='owner'?<JobsPage/>:<Redirect/>}</Route><Route path="/account">{()=>session?<AccountPage/>:<Redirect/>}</Route><Route component={NotFound}/></Switch>;
+  return <Switch key={location}><Route path="/" component={Landing}/><Route path="/sign-in" component={SignIn}/><Route path="/verify/:bookingId" component={VerifyBondPage}/><Route path="/customer/dashboard">{()=>session?.role==='customer'?<CustomerDashboard/>:<Redirect/>}</Route><Route path="/customer/machinery">{()=>session?.role==='customer'?<MachineryPageStable/>:<Redirect/>}</Route><Route path="/customer/auctions">{()=>session?.role==='customer'?<AuctionsPage/>:<Redirect/>}</Route><Route path="/customer/radar">{()=>session?.role==='customer'?<RadarPageLive/>:<Redirect/>}</Route><Route path="/customer/bookings">{()=>session?.role==='customer'?<BookingsPage/>:<Redirect/>}</Route><Route path="/owner/dashboard">{()=>session?.role==='owner'?<OwnerDashboard/>:<Redirect/>}</Route><Route path="/owner/fleet">{()=>session?.role==='owner'?<FleetPage/>:<Redirect/>}</Route><Route path="/owner/equipment-radar">{()=>session?.role==='owner'?<OwnerEquipmentRadarLive/>:<Redirect/>}</Route><Route path="/owner/operations">{()=>session?.role==='owner'?<AppShell role="owner"><Suspense fallback={<RouteLoading/>}><OwnerOperations jobs={demoOperationsJobs()} language={languageFor('owner')} demo/></Suspense></AppShell>:<Redirect/>}</Route><Route path="/owner/jobs">{()=>session?.role==='owner'?<JobsPage/>:<Redirect/>}</Route><Route path="/account">{()=>session?<AccountPage/>:<Redirect/>}</Route><Route component={NotFound}/></Switch>;
 }
 
 function AccountPage() { const uiT=useUiText();
@@ -946,7 +956,7 @@ export default function App() {
   const workforceRoute=workforceDestination(location,role);
   useEffect(()=>{if(session&&workforceRoute&&workforceRoute!==location)setLocation(workforceRoute+window.location.search+window.location.hash,{replace:true})},[workforceRoute,location,!!session,setLocation]);
   useEffect(()=>{if((fuelRoute||workforceRoute||supplierRoute)&&!session)setLocation('/sign-in')},[fuelRoute,workforceRoute,supplierRoute,!!session,setLocation]);
-  const featureLoading=<p role="status">{workerText('Loading workforce',language)}</p>;
+  const featureLoading=<RouteLoading/>;
   if(['/launch-guide','/privacy','/terms'].includes(location))return <LocalizationProvider language={language}><ConnectionStatus/><Suspense fallback={featureLoading}><PlatformGuide language={language} page={location}/></Suspense></LocalizationProvider>;
   if(supplierRoute){if(!session)return null;return <LocalizationProvider language={language}><ConnectionStatus/><AppShell role={role}><Suspense fallback={featureLoading}><SupplierDirectory key={session.userId||session.loginId} demo={session.loginId.endsWith('.demo')} role={role} language={language}/></Suspense></AppShell></LocalizationProvider>;}
   if(location==='/pitch-highlights')return <Suspense fallback={<p role="status">Loading pitch highlights...</p>}><PitchHighlights/></Suspense>;
@@ -964,8 +974,8 @@ export default function App() {
     return <LocalizationProvider language={language}><ConnectionStatus/><AppShell role="owner"><Suspense fallback={featureLoading}><FuelHubPage demo={session.loginId.endsWith('.demo')} language={language}/></Suspense></AppShell></LocalizationProvider>;
   }
   const isWorkspace=location.startsWith('/customer/')||location.startsWith('/owner/')||location==='/account';
-  if(session&&!session.loginId.endsWith('.demo')&&isWorkspace)return <LocalizationProvider language={language}><ConnectionStatus/><RealWorkspace shell={children=><AppShell role={role}>{children}</AppShell>} onInvalidSession={()=>{storage.remove(keyFor('session'));setLocation('/sign-in')}}/></LocalizationProvider>;
-  return <LocalizationProvider language={language}><ConnectionStatus/><><PrototypeNotice location={location}/><RouterLive/></></LocalizationProvider>;
+  if(session&&!session.loginId.endsWith('.demo')&&isWorkspace)return <LocalizationProvider language={language}><ConnectionStatus/><Suspense fallback={featureLoading}><RealWorkspace shell={children=><AppShell role={role}>{children}</AppShell>} onInvalidSession={()=>{storage.remove(keyFor('session'));setLocation('/sign-in')}}/></Suspense></LocalizationProvider>;
+  return <LocalizationProvider language={language}><ConnectionStatus/><><PrototypeNotice location={location}/><Suspense fallback={<RouteLoading/>}><RouterLive/></Suspense></></LocalizationProvider>;
 }
 function PrototypeNotice({location}:{location:string}) {
   const [warning,setWarning]=useState('');

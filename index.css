@@ -531,3 +531,5 @@ html[data-theme='dark'] .landing-band .bg-\[\#e7e3d8\] { background-color:#24324
 
 /* Leaflet panes and controls reach z-index 1000; dialogs must sit above an open map. */
 #root .fixed.z-50 { z-index: 1100; }
+
+.route-loading{padding:24px;color:inherit;min-height:160px}.route-loading>p{font-size:14px;font-weight:650;margin-bottom:18px}.route-loading-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}.route-loading-grid span{display:block;height:108px;border:1px solid #e5e0d8;border-radius:12px;background:linear-gradient(90deg,#ebe7de,#f6f3ed,#ebe7de);background-size:200% 100%;animation:route-loading 1.4s linear infinite}@keyframes route-loading{to{background-position:-200% 0}}:root[data-theme=dark] .route-loading-grid span{border-color:#466257;background:linear-gradient(90deg,#20352f,#2b443b,#20352f);background-size:200% 100%}@media(max-width:600px){.route-loading-grid{grid-template-columns:1fr}.route-loading-grid span{height:70px}}@media(prefers-reduced-motion:reduce){.route-loading-grid span{animation:none}}

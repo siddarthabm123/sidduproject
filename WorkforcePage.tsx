@@ -36,7 +36,7 @@ export default function WorkforcePage({role,demo,language}:{role:'customer'|'own
    scroll();window.addEventListener('hashchange',scroll);return()=>window.removeEventListener('hashchange',scroll);
  },[records]);
  useEffect(()=>{
-   const timer=setInterval(()=>setRefresh(n=>n+1),30000);
+   const timer=setInterval(()=>{if(document.visibilityState==='visible'&&navigator.onLine)setRefresh(n=>n+1)},30000);
    const visible=()=>{if(document.visibilityState==='visible')setRefresh(n=>n+1)};
    document.addEventListener('visibilitychange',visible);
    window.addEventListener('rigdesk-workforce-updated',visible);window.addEventListener('storage',visible);

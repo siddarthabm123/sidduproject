@@ -1,7 +1,7 @@
 import { createRoot } from 'react-dom/client';
 
 import App from './App';
-import { ErrorBoundary } from './error-boundary';
+import { RouteErrorBoundary } from './error-boundary';
 
 import './index.css';
 import './experience.css';
@@ -12,7 +12,7 @@ createRoot(document.getElementById('root')!, {
     console.error(error, errorInfo.componentStack);
   },
 }).render(
-  <ErrorBoundary>
+  <RouteErrorBoundary>
     <App />
-  </ErrorBoundary>,
+  </RouteErrorBoundary>,
 );

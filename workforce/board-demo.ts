@@ -14,7 +14,17 @@ export function demoBoard(now=new Date()):WorkforceBoard{
 }
 export function loadDemoBoard():WorkforceBoard{
   const raw=localStorage.getItem(key);
-  if(raw){const value=JSON.parse(raw);if(!Array.isArray(value.posts)||!Array.isArray(value.applications))throw new Error('Invalid saved demo job board');return value}
+  if(raw){
+    try{
+      const value=JSON.parse(raw);
+      if(value&&Array.isArray(value.posts)&&Array.isArray(value.applications)){
+        const posts=value.posts.filter((p:any)=>p&&typeof p.id==='string'&&typeof p.title==='string'&&typeof p.author_id==='string'&&['customer','owner'].includes(p.author_role)&&Number.isFinite(p.headcount)&&Number.isFinite(p.wage_rate)&&typeof p.description==='string');
+        const applications=value.applications.filter((a:any)=>a&&typeof a.id==='string'&&typeof a.post_id==='string'&&typeof a.applicant_id==='string'&&Number.isFinite(a.offered_wage)&&[a.worker_ids,a.worker_names,a.hire_ids].every(v=>Array.isArray(v)&&v.every(x=>typeof x==='string')));
+        return {posts,applications};
+      }
+    }catch{/* Preserve malformed saved input; show safe fixtures without overwriting it. */}
+    return demoBoard();
+  }
   const board=demoBoard();localStorage.setItem(key,JSON.stringify(board));return board;
 }
 export function saveDemoBoard(board:WorkforceBoard,hires?:WorkerHire[]){

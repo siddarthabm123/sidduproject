@@ -1,10 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
-
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string | undefined;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined;
-const supabaseEnabled = import.meta.env.VITE_ENABLE_SUPABASE === 'true';
-
-export const isSupabaseConfigured = Boolean(supabaseEnabled && supabaseUrl && supabaseAnonKey);
+import { supabaseUrl,supabaseAnonKey,isSupabaseConfigured } from './supabase-config';
+import {timedFetch} from './request-timeout';
+export {isSupabaseConfigured,supabaseConnectionLabel} from './supabase-config';
 
 export const supabase = isSupabaseConfigured
   ? createClient(supabaseUrl!, supabaseAnonKey!, {
@@ -12,6 +9,7 @@ export const supabase = isSupabaseConfigured
         persistSession: true,
         autoRefreshToken: true,
       },
+      global:{fetch:(input,options)=>timedFetch(input,options,options?.body instanceof Blob||options?.body instanceof FormData?60000:12000)},
     })
   : null;
 
@@ -21,7 +19,3 @@ supabase?.auth.onAuthStateChange((event)=>{
   if(event==='SIGNED_OUT')recoverySession=false;
 });
 export const hasRecoverySession=()=>recoverySession;
-
-export function supabaseConnectionLabel() {
-  return isSupabaseConfigured ? 'Supabase configured' : 'Demo mode (not connected)';
-}

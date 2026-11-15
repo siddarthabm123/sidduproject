@@ -1,4 +1,5 @@
 import { supabase } from '../supabase';
+import {timedFetch} from '../request-timeout';
 export async function fuelRequest<T>(route:string, options: { body?:unknown; signal?:AbortSignal; public?:boolean }={}):Promise<T> {
   const headers:Record<string,string>={};
   if(!options.public){
@@ -8,7 +9,7 @@ export async function fuelRequest<T>(route:string, options: { body?:unknown; sig
     headers.Authorization=`Bearer ${data.session.access_token}`;
   }
   if(options.body!==undefined)headers['Content-Type']='application/json';
-  const response=await fetch(`/api/v1/fuel/${route}`,{method:options.body===undefined?'GET':'POST',headers,
+  const response=await timedFetch(`/api/v1/fuel/${route}`,{method:options.body===undefined?'GET':'POST',headers,
     body:options.body===undefined?undefined:JSON.stringify(options.body),signal:options.signal});
   const data=await response.json().catch(()=>({error:'Fuel service is unavailable. Please retry later.'}));
   if(!response.ok)throw new Error(data.error||'Fuel service is unavailable. Please retry later.');

@@ -19,7 +19,7 @@ const fallback:FuelCenter={id:'default',label:'Map center',latitude:12.97,longit
 const emptyContext:FuelContext={can_register:false,can_offer_discounts:false,can_generate:false,equipment:[],centers:[]};
 const demoKey='rigdesk-fuel-demo-vouchers-v1';
 function savedDemoVouchers():FuelVoucher[]{
-  try{const parsed=JSON.parse(localStorage.getItem(demoKey)||'[]');return demoVouchers(Array.isArray(parsed)?parsed.filter(v=>v?.demo===true&&typeof v.id==='string'&&typeof v.expires_at==='string'&&Number.isFinite(v.quantity_litres)&&Number.isFinite(v.discount_rate)).slice(0,100):[])}catch{return demoVouchers()}
+  try{const parsed=JSON.parse(localStorage.getItem(demoKey)||'[]');return demoVouchers(Array.isArray(parsed)?parsed.filter(v=>v?.demo===true&&typeof v.id==='string'&&typeof v.expires_at==='string'&&Number.isFinite(v.quantity_litres)&&Number.isFinite(v.discount_rate)&&typeof v.bunk_name==='string'&&typeof v.bunk_address==='string'&&typeof v.voucher_code==='string'&&['GENERATED','REDEEMED','EXPIRED'].includes(v.status)).slice(0,100):[])}catch{return demoVouchers()}
 }
 export function voucherLink(v:FuelVoucher):string {
   const url=new URL(`/fuel/voucher/${encodeURIComponent(v.id)}`,window.location.origin);

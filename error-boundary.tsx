@@ -4,6 +4,7 @@ import {
   type ErrorInfo,
   type ReactNode,
 } from 'react';
+import {useLocation} from 'wouter';
 
 export interface ErrorFallbackProps {
   error: Error;
@@ -49,8 +50,7 @@ function DefaultFallback({ error, resetError }: ErrorFallbackProps) {
           Something went wrong
         </h1>
         <p className="mt-2 text-sm text-gray-600">
-          This part of the app hit an error. The rest of the app is still
-          running.
+          This page could not be opened. Your saved records have not been cleared.
         </p>
         {/* Dev only: messages can carry API responses and other internals. */}
         {import.meta.env.DEV ? (
@@ -58,7 +58,7 @@ function DefaultFallback({ error, resetError }: ErrorFallbackProps) {
             {error.message || String(error)}
           </pre>
         ) : null}
-        <button
+        <div className="mt-4 flex flex-wrap justify-center gap-3"><button type="button" onClick={resetError} className="rounded bg-gray-900 px-4 py-2 text-sm text-white">Try again</button><button type="button" onClick={()=>window.location.reload()} className="rounded border border-gray-400 px-4 py-2 text-sm text-gray-900">Reload page</button></div><button
           type="button"
           onClick={resetRigLogix}
           className="mt-4 rounded bg-gray-900 px-4 py-2 text-sm text-white hover:bg-gray-700"
@@ -68,6 +68,11 @@ function DefaultFallback({ error, resetError }: ErrorFallbackProps) {
       </div>
     </div>
   );
+}
+
+export function RouteErrorBoundary({children}:{children:ReactNode}){
+  const [route]=useLocation();
+  return <ErrorBoundary resetKey={route}>{children}</ErrorBoundary>;
 }
 
 export class ErrorBoundary extends Component<

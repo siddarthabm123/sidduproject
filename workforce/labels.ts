@@ -1,5 +1,6 @@
 import type { FuelLanguage } from '../fuel/labels';
 const labels:Record<string,[string,string]>={
+ 'Request timed out. Please retry.':['अनुरोध में अधिक समय लगा। फिर कोशिश करें।','ವಿನಂತಿಗೆ ಹೆಚ್ಚು ಸಮಯ ಹಿಡಿಯಿತು. ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ.'],
  'Find operators for your fleet, hire site workers and manage your worker profiles.':['अपने फ्लीट के लिए ऑपरेटर खोजें, साइट कर्मचारी रखें और अपने कर्मचारी प्रोफाइल संभालें।','ನಿಮ್ಮ ಯಂತ್ರಗಳಿಗೆ ಆಪರೇಟರ್ ಹುಡುಕಿ, ಸೈಟ್ ಕೆಲಸಗಾರರನ್ನು ನೇಮಿಸಿ ಮತ್ತು ನಿಮ್ಮ ಕೆಲಸಗಾರರ ವಿವರಗಳನ್ನು ನಿರ್ವಹಿಸಿ.'],
  'Find skilled people for your rented equipment and project site.':['किराए की मशीन और कार्यस्थल के लिए कुशल कर्मचारी खोजें।','ಬಾಡಿಗೆ ಯಂತ್ರ ಮತ್ತು ಕೆಲಸದ ಸ್ಥಳಕ್ಕೆ ನುರಿತ ಕೆಲಸಗಾರರನ್ನು ಹುಡುಕಿ.'],
  'Contact not provided':['संपर्क नंबर उपलब्ध नहीं है','ಸಂಪರ್ಕ ಸಂಖ್ಯೆ ನೀಡಿಲ್ಲ'],

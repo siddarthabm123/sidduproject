@@ -1,0 +1,17 @@
+type AccountData=typeof import('./riglogix-data');
+let pending:Promise<AccountData>|undefined;
+const load=()=>pending??=import('./riglogix-data').catch(error=>{pending=undefined;throw error});
+export const getCurrentProfile=async(...args:Parameters<AccountData['getCurrentProfile']>)=>(await load()).getCurrentProfile(...args);
+export const getCurrentAdminAccess=async(...args:Parameters<AccountData['getCurrentAdminAccess']>)=>(await load()).getCurrentAdminAccess(...args);
+export const loadCurrentAppState=async(...args:Parameters<AccountData['loadCurrentAppState']>)=>(await load()).loadCurrentAppState(...args);
+export const markAadhaarReferenceVerified=async(...args:Parameters<AccountData['markAadhaarReferenceVerified']>)=>(await load()).markAadhaarReferenceVerified(...args);
+export const saveCurrentAppStateValue=async(...args:Parameters<AccountData['saveCurrentAppStateValue']>)=>(await load()).saveCurrentAppStateValue(...args);
+export const sendEmailSignupOtp=async(...args:Parameters<AccountData['sendEmailSignupOtp']>)=>(await load()).sendEmailSignupOtp(...args);
+export const sendPhoneOtp=async(...args:Parameters<AccountData['sendPhoneOtp']>)=>(await load()).sendPhoneOtp(...args);
+export const setCurrentPassword=async(...args:Parameters<AccountData['setCurrentPassword']>)=>(await load()).setCurrentPassword(...args);
+export const signInWithPassword=async(...args:Parameters<AccountData['signInWithPassword']>)=>(await load()).signInWithPassword(...args);
+export const signOutSupabase=async(...args:Parameters<AccountData['signOutSupabase']>)=>(await load()).signOutSupabase(...args);
+export const signUpWithProfile=async(...args:Parameters<AccountData['signUpWithProfile']>)=>(await load()).signUpWithProfile(...args);
+export const updateCurrentProfile=async(...args:Parameters<AccountData['updateCurrentProfile']>)=>(await load()).updateCurrentProfile(...args);
+export const verifyEmailSignupOtp=async(...args:Parameters<AccountData['verifyEmailSignupOtp']>)=>(await load()).verifyEmailSignupOtp(...args);
+export const verifyPhoneOtp=async(...args:Parameters<AccountData['verifyPhoneOtp']>)=>(await load()).verifyPhoneOtp(...args);

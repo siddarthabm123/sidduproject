@@ -28,7 +28,7 @@ export default function WorkforceJobBoard({role,language,demo=false,compact=fals
  useEffect(()=>{
   let active=true,sequence=0;let controller:AbortController|undefined;
   const load=async()=>{const ticket=++sequence;controller?.abort();controller=new AbortController();try{const data=demo?loadDemoBoard():(await workerRequest<{board:WorkforceBoard}>('jobs',undefined,controller.signal)).board;if(active&&ticket===sequence){setBoard(data);setError('')}}catch(e){if(active&&ticket===sequence&&!(e instanceof Error&&e.name==='AbortError'))setError('Job board is unavailable. Existing worker hiring remains available.')}finally{if(active&&ticket===sequence)setLoading(false)}};
-  void load();const timer=setInterval(()=>{if(document.visibilityState==='visible')void load()},30000);
+  void load();const timer=setInterval(()=>{if(document.visibilityState==='visible'&&navigator.onLine)void load()},30000);
   window.addEventListener('focus',load);window.addEventListener('storage',load);window.addEventListener('rigdesk-workforce-updated',load);
   return()=>{active=false;controller?.abort();clearInterval(timer);window.removeEventListener('focus',load);window.removeEventListener('storage',load);window.removeEventListener('rigdesk-workforce-updated',load)};
  },[demo,role,version]);

@@ -1,5 +1,8 @@
 import type { UpgradeLanguage } from './suppliers';
 const labels:Record<string,[string,string]>={
+  'Opening this page…':['पेज खुल रहा है…','ಪುಟ ತೆರೆಯಲಾಗುತ್ತಿದೆ…'],
+  'Loading work records…':['काम के रिकॉर्ड आ रहे हैं…','ಕೆಲಸದ ದಾಖಲೆಗಳನ್ನು ತರಲಾಗುತ್ತಿದೆ…'],
+  'Request timed out. Please retry.':['अनुरोध में अधिक समय लगा। फिर कोशिश करें।','ವಿನಂತಿಗೆ ಹೆಚ್ಚು ಸಮಯ ಹಿಡಿಯಿತು. ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ.'],
   'Compare saved equipment':['सहेजे उपकरण की तुलना करें','ಉಳಿಸಿದ ಯಂತ್ರಗಳನ್ನು ಹೋಲಿಸಿ'],
   'Compare machines with the same billing unit and work scope. Rates exclude unagreed extras. Up to four saved listings are shown.':['एक जैसी बिलिंग इकाई और काम वाली मशीनें तुलना करें। अलग तय होने वाले खर्च शामिल नहीं हैं। अधिकतम चार सहेजे उपकरण दिखते हैं।','ಒಂದೇ ದರದ ಘಟಕ ಮತ್ತು ಕೆಲಸದ ಯಂತ್ರಗಳನ್ನು ಹೋಲಿಸಿ. ಒಪ್ಪದ ಹೆಚ್ಚುವರಿ ವೆಚ್ಚ ಸೇರಿಲ್ಲ. ನಾಲ್ಕು ಉಳಿಸಿದ ಯಂತ್ರಗಳವರೆಗೆ ಕಾಣುತ್ತವೆ.'],
   'Equipment':['उपकरण','ಯಂತ್ರ'],'Owner':['मालिक','ಮಾಲೀಕರು'],'Rate':['दर','ದರ'],'Fleet units':['फ्लीट इकाइयां','ಒಟ್ಟು ಯಂತ್ರ ಘಟಕಗಳು'],'Rating':['रेटिंग','ರೇಟಿಂಗ್'],'Verification':['सत्यापन','ಪರಿಶೀಲನೆ'],'Reviewed listing':['समीक्षित लिस्टिंग','ಪರಿಶೀಲಿಸಿದ ಯಂತ್ರ'],'Awaiting verification':['समीक्षा बाकी','ಪರಿಶೀಲನೆ ಬಾಕಿ'],'No reviews':['कोई समीक्षा नहीं','ವಿಮರ್ಶೆಗಳಿಲ್ಲ'],

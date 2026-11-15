@@ -1,5 +1,6 @@
 export type FuelLanguage='en'|'hi'|'kn';
 const labels:Record<string,[string,string]>={
+  'Request timed out. Please retry.':['अनुरोध में अधिक समय लगा। फिर कोशिश करें।','ವಿನಂತಿಗೆ ಹೆಚ್ಚು ಸಮಯ ಹಿಡಿಯಿತು. ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ.'],
   'Fuel bills & savings examples':['ईंधन बिल और बचत के उदाहरण','ಇಂಧನ ಬಿಲ್ ಮತ್ತು ಉಳಿತಾಯದ ಉದಾಹರಣೆಗಳು'],
   'Sample completed purchases':['पूरी हुई खरीद के उदाहरण','ಪೂರ್ಣಗೊಂಡ ಖರೀದಿಯ ಮಾದರಿಗಳು'],
   'See how a partner voucher reduces the fuel bill. Prices, purchases and savings below are fictional demo examples.':['देखें पार्टनर वाउचर से ईंधन बिल कैसे घटता है। नीचे की कीमतें, खरीद और बचत काल्पनिक डेमो उदाहरण हैं।','ಪಾಲುದಾರರ ವೌಚರ್‌ನಿಂದ ಇಂಧನ ಬಿಲ್ ಹೇಗೆ ಕಡಿಮೆಯಾಗುತ್ತದೆ ನೋಡಿ. ಕೆಳಗಿನ ಬೆಲೆ, ಖರೀದಿ ಮತ್ತು ಉಳಿತಾಯ ಡೆಮೋ ಮಾದರಿಗಳು ಮಾತ್ರ.'],
