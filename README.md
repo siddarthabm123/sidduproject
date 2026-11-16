@@ -10,7 +10,7 @@ Built for construction, agriculture, borewell drilling, logistics, and infrastru
 >
 > Customers save. Equipment works. Owners get paid faster.
 
-**[Visit RigDesk](https://rigdesk-marketplace-rig-desk.vercel.app/)** | **[Choose a demo profile](https://rigdesk-marketplace-rig-desk.vercel.app/demo)** | **[Account access](https://rigdesk-marketplace-rig-desk.vercel.app/sign-in)**
+**[Visit RigDesk](https://rigdesk-marketplace-rig-logi-x.vercel.app/)** | **[Choose a demo profile](https://rigdesk-marketplace-rig-logi-x.vercel.app/demo)** | **[Account access](https://rigdesk-marketplace-rig-logi-x.vercel.app/sign-in)**
 
 **Source repository:** [siddarthabm123/sidduproject](https://github.com/siddarthabm123/sidduproject)
 
@@ -22,15 +22,15 @@ The web prototype is deployed on **Vercel**. Start with the demo selector to exp
 
 | Page | Live link |
 | --- | --- |
-| Official website | [RigDesk Marketplace](https://rigdesk-marketplace-rig-desk.vercel.app/) |
-| Demo profile selection | [Choose Customer or Equipment Owner](https://rigdesk-marketplace-rig-desk.vercel.app/demo) |
-| Create account / login | [Account Access](https://rigdesk-marketplace-rig-desk.vercel.app/sign-in) |
-| Customer equipment search | [Find Equipment](https://rigdesk-marketplace-rig-desk.vercel.app/customer/machinery) |
-| Customer equipment map | [Equipment Radar](https://rigdesk-marketplace-rig-desk.vercel.app/customer/radar) |
-| Project bidding | [Reverse Auctions](https://rigdesk-marketplace-rig-desk.vercel.app/customer/auctions) |
-| Customer bookings | [My Bookings](https://rigdesk-marketplace-rig-desk.vercel.app/customer/bookings) |
-| Owner fleet management | [My Fleet](https://rigdesk-marketplace-rig-desk.vercel.app/owner/fleet) |
-| Owner requests and bids | [Jobs and Bids](https://rigdesk-marketplace-rig-desk.vercel.app/owner/jobs) |
+| Official website | [RigDesk Marketplace](https://rigdesk-marketplace-rig-logi-x.vercel.app/) |
+| Demo profile selection | [Choose Customer or Equipment Owner](https://rigdesk-marketplace-rig-logi-x.vercel.app/demo) |
+| Create account / login | [Account Access](https://rigdesk-marketplace-rig-logi-x.vercel.app/sign-in) |
+| Customer equipment search | [Find Equipment](https://rigdesk-marketplace-rig-logi-x.vercel.app/customer/machinery) |
+| Customer equipment map | [Equipment Radar](https://rigdesk-marketplace-rig-logi-x.vercel.app/customer/radar) |
+| Project bidding | [Reverse Auctions](https://rigdesk-marketplace-rig-logi-x.vercel.app/customer/auctions) |
+| Customer bookings | [My Bookings](https://rigdesk-marketplace-rig-logi-x.vercel.app/customer/bookings) |
+| Owner fleet management | [My Fleet](https://rigdesk-marketplace-rig-logi-x.vercel.app/owner/fleet) |
+| Owner requests and bids | [Jobs and Bids](https://rigdesk-marketplace-rig-logi-x.vercel.app/owner/jobs) |
 
 Workspace links require the corresponding customer or owner session. Select **Siddartha** or **Mahesh** on the demo page first.
 
@@ -104,7 +104,7 @@ Equipment examples include excavators, tippers, borewell rigs, tractors, tractor
 
 ## 5. Explore the Demo
 
-Open the **[demo selection page](https://rigdesk-marketplace-rig-desk.vercel.app/demo)** and choose:
+Open the **[demo selection page](https://rigdesk-marketplace-rig-logi-x.vercel.app/demo)** and choose:
 
 | Profile | What to explore |
 | --- | --- |
