@@ -13,6 +13,7 @@ tmp/
 .pnpm-store/
 RigLogix-source-code/
 RigLogix-runnable/
+demo-generator/
 *.log
 *.pdf
 *.pptx

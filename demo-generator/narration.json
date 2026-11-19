@@ -1,0 +1,37 @@
+[
+  {
+    "start": 0,
+    "duration": 15,
+    "title": "The problem · A direct machinery marketplace",
+    "boundary": "80% is a founder field estimate, not a national survey",
+    "text": "Our founder estimates eighty percent of machinery deals involve agents. Borewell, JCB and logistics customers struggle to compare options. RigDesk connects customers and owners in one direct marketplace."
+  },
+  {
+    "start": 15,
+    "duration": 20,
+    "title": "Compare equipment · Let owners compete",
+    "boundary": "Rule-based comparison today · Predictive AI pricing planned",
+    "text": "Find equipment, choose quantities across owners, and compare rates. For bulk projects, owners compete through reverse bidding. Customers can sort by price, rating, reviews or arrival. Today's comparison uses explicit rules. AI recommendations are prepared, while predictive fair pricing remains planned."
+  },
+  {
+    "start": 35,
+    "duration": 20,
+    "title": "Booking commitment · A traceable digital bond",
+    "boundary": "Simulated reserves · Payment onboarding required · No legal/payout guarantee",
+    "text": "Booking records the site, scope and estimate. Commitment reserves illustrate cancellation protection. Digital service bonds link to booking verification. These are prototype examples. Funded escrow needs payment onboarding; cancellation prevention, legal enforceability and instant payouts are not guaranteed."
+  },
+  {
+    "start": 55,
+    "duration": 20,
+    "title": "Fuel benefits · Skilled people for the job",
+    "boundary": "Fictional fuel partners and demo workers · Real agreements required",
+    "text": "Fuel vouchers and sample bills show potential per-litre savings. Real discounts need pump agreements. The workforce portal connects operators and labour profiles with employers, showing expected wages, negotiated offers and document-review badges. These are demo workflows, not completed transactions."
+  },
+  {
+    "start": 75,
+    "duration": 15,
+    "title": "A sustainable model · India's working infrastructure",
+    "boundary": "Proposed owner fee · Existing prototype quote fees remain unchanged",
+    "text": "Our proposed owner fee is two point five percent: twenty-five hundred rupees on one lakh of work, before costs. RigDesk aims to turn idle machinery into productive work, with transparent execution across India's infrastructure."
+  }
+]
